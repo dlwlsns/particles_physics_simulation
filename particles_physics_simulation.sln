@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32901.82
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client", "client\particles_physics_simulation.vcxproj", "{7DBC71EE-1589-45CD-A658-75E2EE7BB179}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0A2E8D85-1B72-415D-AC5F-74E7252008F6} = {0A2E8D85-1B72-415D-AC5F-74E7252008F6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "engine", "engine\engine.vcxproj", "{0A2E8D85-1B72-415D-AC5F-74E7252008F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7DBC71EE-1589-45CD-A658-75E2EE7BB179}.Debug|x64.ActiveCfg = Debug|x64
+		{7DBC71EE-1589-45CD-A658-75E2EE7BB179}.Debug|x64.Build.0 = Debug|x64
+		{7DBC71EE-1589-45CD-A658-75E2EE7BB179}.Release|x64.ActiveCfg = Release|x64
+		{7DBC71EE-1589-45CD-A658-75E2EE7BB179}.Release|x64.Build.0 = Release|x64
+		{0A2E8D85-1B72-415D-AC5F-74E7252008F6}.Debug|x64.ActiveCfg = Debug|x64
+		{0A2E8D85-1B72-415D-AC5F-74E7252008F6}.Debug|x64.Build.0 = Debug|x64
+		{0A2E8D85-1B72-415D-AC5F-74E7252008F6}.Release|x64.ActiveCfg = Release|x64
+		{0A2E8D85-1B72-415D-AC5F-74E7252008F6}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10263A00-5606-4A55-AE89-D3432BBC0DBB}
+	EndGlobalSection
+EndGlobal
