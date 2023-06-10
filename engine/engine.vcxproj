@@ -106,7 +106,6 @@
     <ClCompile Include="pointLight.cpp" />
     <ClCompile Include="perspectiveCamera.cpp" />
     <ClCompile Include="renderList.cpp" />
-    <ClCompile Include="sceneReader.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="spotLight.cpp" />
   </ItemGroup>
@@ -124,7 +123,6 @@
     <ClInclude Include="pointLight.h" />
     <ClInclude Include="perspectiveCamera.h" />
     <ClInclude Include="renderList.h" />
-    <ClInclude Include="sceneReader.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="spotLight.h" />
   </ItemGroup>

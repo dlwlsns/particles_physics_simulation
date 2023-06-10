@@ -15,7 +15,6 @@
 
 // Engine
 #include "cg_engine.h"
-#include "sceneReader.h"
 #include "spotLight.h"
 #include "renderList.h"
 #include "shaderGlobals.h"
@@ -261,52 +260,6 @@ void CgEngine::addGuiText(char* text) {
 }
 
 /**
- * This function allows the client to load a scene.
- *
- * @param filePath path of the file where to load the scene from
- */
-Node* CgEngine::load(char* filePath) {
-    // Open file:
-    FILE* dat = fopen(filePath, "rb");
-    if (dat == nullptr)
-    {
-        std::cout << "ERROR: unable to open file" << std::endl;
-        return nullptr;
-    }
-
-    Node* root = nullptr;
-
-    // Parse chuncks:	
-    Object* obj;
-    int count = 0;
-
-    SceneReader* reader = new SceneReader();
-    reader->file = dat;
-    reader->materials = materials;
-    do
-    {
-        obj = (Object*)reader->typeSelect(dat, materials);
-
-        if (dynamic_cast<const Material*>(obj) != nullptr) {
-            Material* m = dynamic_cast<Material*>(obj);
-            materials.push_back(m);
-            reader->materials = materials;
-        }
-        else if (dynamic_cast<const Node*>(obj) != nullptr) {
-            Node* node = dynamic_cast<Node*>(obj);
-            if (root == nullptr)
-                root = node;
-        }
-
-        count++;
-    } while (obj != nullptr || count == 1);
-
-    fclose(dat);
-
-    return root;
-}
-
-/**
  * This function add the node and all his children to the RenderList.
  *
  * @param node node to add
@@ -456,8 +409,6 @@ void displayCallback()
     glClearDepth(1.0f);
 
     // Render Nodes
-    renderlist->empty();
-    CgEngine::getIstance()->parse(currentScene);
     renderlist->render(cameras[activeCam]->getInverse());
 
     // Swap this context's buffer:  

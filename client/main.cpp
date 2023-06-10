@@ -152,11 +152,17 @@ int main(int argc, char *argv[])
     // Load scene
     scene = new Node("Root");
 
-    Mesh* sphere = generateSphere(10);
-    glm::mat4 sphere_M = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 5.0f));
-    sphere->setObjectCoordinates(sphere_M);
-
-    scene->addChild(sphere);
+    for (int x = -10; x < 10; x++) {
+        for (int y = -10; y < 10; y++) {
+            for (int z = -10; z < 10; z++) {
+                Mesh* sphere = generateSphere(10);
+                glm::mat4 sphere_M = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z) * 10.0f);
+                sphere->setObjectCoordinates(sphere_M);
+                scene->addChild(sphere);
+            }
+        }
+    }
+    
 
     // Add cameras to the scene
     Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 2000.0f, 45.0f, 1.0f);
