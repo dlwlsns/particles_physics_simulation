@@ -64,15 +64,18 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 
 		unsigned int vao = item->node->getVAO();
 		int facesCount = item->node->getFaces().size();
+
+		glBindVertexArray(vao);
 		
 		for (int i = 0; i < item->matrices.size(); i++) {
 			
 			//glUniformMatrix4fv(current_shader->getParamLocation(("coords[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(item->matrices[i]));
 			current_shader->setMatrix(current_shader->getParamLocation("temp"), item->matrices[i]);
 			glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
-
-			glBindVertexArray(vao);
+			
 			glDrawElements(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr);
 		}
 	}
+
+	glBindVertexArray(0);
 }
