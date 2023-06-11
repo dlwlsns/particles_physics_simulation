@@ -54,14 +54,16 @@ const char* vertShader = R"(
    #version 450 core
 
    // Uniforms:
+   uniform mat4 invCamera;
+   uniform mat4 coords[10000];
    uniform mat4 projection;
    uniform mat4 modelview;
+   uniform mat4 temp;
    uniform mat3 normalMatrix;
 
    // Attributes:
    layout(location = 0) in vec3 in_Position;
    layout(location = 1) in vec3 in_Normal;
-   //layout(location = 2) in vec2 in_TexCoord;
 
    // Varying:
    out vec4 fragPosition;
@@ -69,8 +71,8 @@ const char* vertShader = R"(
 
    void main(void)
    {
-      //texCoord = in_TexCoord;
-      fragPosition = modelview * vec4(in_Position, 1.0f);
+      //modelview = invCamera * temp;
+      fragPosition = invCamera * temp * vec4(in_Position, 1.0f);
       gl_Position = projection * fragPosition;      
       normal = normalMatrix * in_Normal;
    }
@@ -388,7 +390,7 @@ void timerCallback(int value)
     // Update values:
     fps = frames;
     frames = 0;
-    std::cout << fps << std::endl;
+    glutSetWindowTitle(("Particles Physics Simulation - " + std::to_string(fps) + " FPS").c_str());
 
     // Register the next update:
     glutTimerFunc(1000, timerCallback, 0);

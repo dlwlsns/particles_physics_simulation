@@ -12,7 +12,7 @@
 #include "mesh.h"
 #include "shaderGlobals.h"
 
-RenderItem::RenderItem(Node* node) : node(node) {};
+RenderItem::RenderItem(Mesh* node) : node(node) {};
 
 RenderList::RenderList(char* name) : Object(name) {}
 
@@ -54,18 +54,25 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
 	Shader* current_shader = shaders.getActiveShader();
 
+	glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(inverseCamera_M));
+
 	for (RenderItem* item : items)
 	{
 		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
 			(dynamic_cast<Mesh*>(item->node))->initVAO();
 		}
+
+		unsigned int vao = item->node->getVAO();
+		int facesCount = item->node->getFaces().size();
 		
 		for (int i = 0; i < item->matrices.size(); i++) {
-			current_shader->setMatrix(current_shader->getParamLocation("modelview"), inverseCamera_M * item->matrices[i]);
-			glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(item->matrices[i]));
-			current_shader->setMatrix3(current_shader->getParamLocation("normalMatrix"), normalMatrix);
+			
+			//glUniformMatrix4fv(current_shader->getParamLocation(("coords[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(item->matrices[i]));
+			current_shader->setMatrix(current_shader->getParamLocation("temp"), item->matrices[i]);
+			glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
 
-			item->node->render(inverseCamera_M * item->matrices[i]);
+			glBindVertexArray(vao);
+			glDrawElements(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr);
 		}
 	}
 }

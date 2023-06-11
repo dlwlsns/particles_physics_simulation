@@ -1,15 +1,15 @@
 #pragma once
-#include "node.h"
+#include "mesh.h"
 #include "shaderGlobals.h"
 #include <vector>
 #include <typeinfo>
 
 
 struct RenderItem {
-	Node* node;
+	Mesh* node;
 	std::vector<glm::mat4> matrices;
 
-	RenderItem(Node* node);
+	RenderItem(Mesh* node);
 };
 
 class RenderList : public Object

@@ -99,6 +99,8 @@ void Mesh::initVAO()
 
         glBindVertexArray(0);
 
+        std::cout << "Verticies: " << N << " - Faces: " << faces.size()/3 << std::endl;
+
         isVaoInit = true;
     }
 }
@@ -108,15 +110,14 @@ unsigned int Mesh::getVAO() {
 }
 
 void Mesh::render(glm::mat4 inverseCamera) {
-    if (this->getMaterial() != nullptr)
-        this->getMaterial()->render(inverseCamera);
+    //if (this->getMaterial() != nullptr)
+    //    this->getMaterial()->render(inverseCamera);
 
     // Pass a triangle (object coordinates: the triangle is centered around the origin):
-    glDepthFunc(GL_LESS);
+    //glDepthFunc(GL_LESS);
    
-    glBindVertexArray(vaoGlobal);
-    glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
+    
+    //glBindVertexArray(0);
     
     //glDisable(GL_TEXTURE_2D);
 }
