@@ -9,9 +9,11 @@ class LIB_API Mesh : public Node
 		unsigned int vboVertex;
 		unsigned int vboNormals;
 		unsigned int vboFace;
+		unsigned int vboMatrices;
 		std::vector<glm::vec3> verticies;
 		std::vector<glm::vec3> normals;
 		std::vector<unsigned int> faces;
+		std::vector<glm::vec3> matrices;
 		Material* material;
 		bool isVaoInit;
 
@@ -33,6 +35,9 @@ class LIB_API Mesh : public Node
 		float getBoundingSphereRadius();
 		void toggleBoundingSphere();
 		bool isBoundingSphereEnabled();
+
+		void addMatrix(glm::vec3 matrix);
+		std::vector<glm::vec3> getMatrices();
 
 		void initVAO();
 		unsigned int getVAO();

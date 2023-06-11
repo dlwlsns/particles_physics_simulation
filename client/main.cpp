@@ -80,16 +80,16 @@ int main(int argc, char *argv[])
     // Load scene
     scene = new Node("Root");
 
-    for (int x = -10; x < 10; x++) {
-        for (int y = -10; y < 10; y++) {
-            for (int z = -10; z < 10; z++) {
-                Sphere* sphere = new Sphere("sphere", 10);
-                glm::mat4 sphere_M = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z) * 10.0f);
-                sphere->setObjectCoordinates(sphere_M);
-                scene->addChild(sphere);
+    Sphere* sphere = new Sphere("sphere", 10);
+    
+    for (int x = -15; x < 15; x++) {
+        for (int y = -15; y < 15; y++) {
+            for (int z = -15; z < 15; z++) {
+                sphere->addMatrix(glm::vec3(x, y, z) * 10.0f);
             }
         }
     }
+    scene->addChild(sphere);
     
 
     // Add cameras to the scene

@@ -55,15 +55,14 @@ const char* vertShader = R"(
 
    // Uniforms:
    uniform mat4 invCamera;
-   uniform mat4 coords[10000];
    uniform mat4 projection;
    uniform mat4 modelview;
-   uniform mat4 temp;
    uniform mat3 normalMatrix;
 
    // Attributes:
    layout(location = 0) in vec3 in_Position;
    layout(location = 1) in vec3 in_Normal;
+   layout(location = 2) in vec3 in_Matrices;
 
    // Varying:
    out vec4 fragPosition;
@@ -71,8 +70,7 @@ const char* vertShader = R"(
 
    void main(void)
    {
-      //modelview = invCamera * temp;
-      fragPosition = invCamera * temp * vec4(in_Position, 1.0f);
+      fragPosition = invCamera * vec4(in_Position + in_Matrices, 1.0f);
       gl_Position = projection * fragPosition;      
       normal = normalMatrix * in_Normal;
    }
@@ -280,7 +278,10 @@ void CgEngine::parse(Node* scene) {
         cameras.push_back(dynamic_cast<Camera*>(scene));
     }
     else if(dynamic_cast<const Sphere*>(scene) != nullptr) {
-        renderlist->get(0)->matrices.push_back(scene->getWorldCoordinates());
+        //TODO: find a better way to add a new mesh type
+        Sphere* s = dynamic_cast<Sphere*>(scene);
+        
+        renderlist->addItem(new RenderItem(s));
     }
 
     for (int i = 0; i < scene->getChildrenCount(); i++) {
@@ -626,7 +627,6 @@ bool CgEngine::init(int argc, char* argv[])
     shaders.activateShader(0);
 
     renderlist = new RenderList("renderlist");
-    renderlist->addItem(new RenderItem(new Sphere("sphere", 10)));
 
     // Add an Orthographic Camera for the GUI
     Camera* gui = new OrthographicCamera("GUI", -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);

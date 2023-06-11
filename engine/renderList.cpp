@@ -10,6 +10,7 @@
 #include "renderList.h"
 #include "light.h"
 #include "mesh.h"
+#include "sphere.h"
 #include "shaderGlobals.h"
 
 RenderItem::RenderItem(Mesh* node) : node(node) {};
@@ -58,8 +59,8 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 
 	for (RenderItem* item : items)
 	{
-		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
-			(dynamic_cast<Mesh*>(item->node))->initVAO();
+		if (dynamic_cast<const Sphere*>(item->node) != nullptr) {
+			(dynamic_cast<Sphere*>(item->node))->initVAO();
 		}
 
 		unsigned int vao = item->node->getVAO();
@@ -68,13 +69,9 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 		glBindVertexArray(vao);
 		
 		for (int i = 0; i < item->matrices.size(); i++) {
-			
-			//glUniformMatrix4fv(current_shader->getParamLocation(("coords[" + std::to_string(i) + "]").c_str()), 1, GL_FALSE, glm::value_ptr(item->matrices[i]));
-			current_shader->setMatrix(current_shader->getParamLocation("temp"), item->matrices[i]);
-			glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
-			
-			glDrawElements(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr);
+			//glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
 		}
+		glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
 	}
 
 	glBindVertexArray(0);

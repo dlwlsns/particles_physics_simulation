@@ -57,6 +57,14 @@ bool Mesh::isBoundingSphereEnabled() {
     return this->boundingSphere;
 }
 
+void Mesh::addMatrix(glm::vec3 matrix) {
+    this->matrices.push_back(matrix);
+}
+
+std::vector<glm::vec3> Mesh::getMatrices() {
+    return this->matrices;
+}
+
 void Mesh::initVAO()
 {
     if (!isVaoInit) {
@@ -81,6 +89,10 @@ void Mesh::initVAO()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(unsigned int), &faces[0], GL_STATIC_DRAW);
 
+        glGenBuffers(1, &vboMatrices);
+        glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
+        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec3), &matrices[0], GL_STATIC_DRAW);
+
         glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
@@ -89,11 +101,10 @@ void Mesh::initVAO()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
 
-        /*
-        //glVertexPointer(3, GL_FLOAT, 0, nullptr);
-        glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-        //glNormalPointer(GL_FLOAT, 0, nullptr);
-        */
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        glVertexAttribDivisor(2, 1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
 
@@ -112,12 +123,4 @@ unsigned int Mesh::getVAO() {
 void Mesh::render(glm::mat4 inverseCamera) {
     //if (this->getMaterial() != nullptr)
     //    this->getMaterial()->render(inverseCamera);
-
-    // Pass a triangle (object coordinates: the triangle is centered around the origin):
-    //glDepthFunc(GL_LESS);
-   
-    
-    //glBindVertexArray(0);
-    
-    //glDisable(GL_TEXTURE_2D);
 }
