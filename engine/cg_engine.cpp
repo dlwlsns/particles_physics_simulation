@@ -277,19 +277,15 @@ void CgEngine::parse(Node* scene) {
     if (dynamic_cast<const Camera*>(scene) != nullptr) {
         cameras.push_back(dynamic_cast<Camera*>(scene));
     }
-    else {
-        if (dynamic_cast<const Mesh*>(scene) != nullptr) {
-            (dynamic_cast<Mesh*>(scene))->initVAO();
-        }
-
-        renderlist->addItem(RenderItem(scene, scene->getWorldCoordinates()));
+    else if(dynamic_cast<const Sphere*>(scene) != nullptr) {
+        renderlist->get(0)->matrices.push_back(scene->getWorldCoordinates());
     }
 
     for (int i = 0; i < scene->getChildrenCount(); i++) {
         parse(scene->getChild(i));
     }
 
-    renderlist->sort();
+    //renderlist->sort();
 }
 
 /**
@@ -516,7 +512,7 @@ bool CgEngine::init(int argc, char* argv[])
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
     // Create the window with a specific title:   
-    windowId = glutCreateWindow("CG - The Crane");
+    windowId = glutCreateWindow("Particles Physics Simulation");
 
     // Init Glew (*after* the context creation):
     glewExperimental = GL_TRUE;
@@ -628,7 +624,7 @@ bool CgEngine::init(int argc, char* argv[])
     shaders.activateShader(0);
 
     renderlist = new RenderList("renderlist");
-
+    renderlist->addItem(new RenderItem(new Sphere("sphere", 10)));
 
     // Add an Orthographic Camera for the GUI
     Camera* gui = new OrthographicCamera("GUI", -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);

@@ -103,6 +103,10 @@ void Mesh::initVAO()
     }
 }
 
+unsigned int Mesh::getVAO() {
+    return this->vaoGlobal;
+}
+
 void Mesh::render(glm::mat4 inverseCamera) {
     if (this->getMaterial() != nullptr)
         this->getMaterial()->render(inverseCamera);

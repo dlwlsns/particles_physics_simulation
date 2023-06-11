@@ -6,24 +6,24 @@
 
 
 struct RenderItem {
-	Object* object;
-	glm::mat4 matrix;
+	Node* node;
+	std::vector<glm::mat4> matrices;
 
-	RenderItem(Object* object, glm::mat4 matrix);
+	RenderItem(Node* node);
 };
 
 class RenderList : public Object
 {
 	private:
-		std::vector<RenderItem> items;
+		std::vector<RenderItem*> items;
 	public:
 		RenderList(char* name);
 		virtual ~RenderList();
 
-		void addItem(RenderItem item);
+		void addItem(RenderItem* item);
 		void removeitem(unsigned int id);
-		RenderItem get(int index);
-		void set(int index, RenderItem item);
+		RenderItem* get(int index);
+		void set(int index, RenderItem* item);
 		void empty();
 		int size();
 		void sort();

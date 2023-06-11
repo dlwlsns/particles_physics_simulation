@@ -35,6 +35,7 @@ class LIB_API Mesh : public Node
 		bool isBoundingSphereEnabled();
 
 		void initVAO();
+		unsigned int getVAO();
 
 		virtual void render(glm::mat4 inverseCamera_M);
 };
