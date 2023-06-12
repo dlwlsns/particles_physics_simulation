@@ -210,6 +210,8 @@ void CgEngine::cameraRotation() {
     Shader* current_shader = shaders.getShaderById(0);
     current_shader->setMatrix(current_shader->getParamLocation("projection"), cameras[activeCam]->getProjection());
 
+    glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
+
     glutPostWindowRedisplay(windowId);
 }
 
@@ -276,6 +278,10 @@ void CgEngine::parse(Node* scene) {
 
     if (dynamic_cast<const Camera*>(scene) != nullptr) {
         cameras.push_back(dynamic_cast<Camera*>(scene));
+
+        //TODO: find a place to set first camera
+        Shader* current_shader = shaders.getShaderById(0);
+        glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
     }
     else if(dynamic_cast<const Sphere*>(scene) != nullptr) {
         //TODO: find a better way to add a new mesh type
@@ -288,6 +294,7 @@ void CgEngine::parse(Node* scene) {
         parse(scene->getChild(i));
     }
 
+    
     //renderlist->sort();
 }
 

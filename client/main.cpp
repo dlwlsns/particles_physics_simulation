@@ -82,9 +82,10 @@ int main(int argc, char *argv[])
 
     Sphere* sphere = new Sphere("sphere", 10);
     
-    for (int x = -15; x < 15; x++) {
-        for (int y = -15; y < 15; y++) {
-            for (int z = -15; z < 15; z++) {
+    int range = 30;
+    for (int x = -range/2; x < range / 2; x++) {
+        for (int y = -range / 2; y < range / 2; y++) {
+            for (int z = -range / 2; z < range / 2; z++) {
                 sphere->addMatrix(glm::vec3(x, y, z) * 10.0f);
             }
         }
