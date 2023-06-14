@@ -62,7 +62,7 @@ const char* vertShader = R"(
    // Attributes:
    layout(location = 0) in vec3 in_Position;
    layout(location = 1) in vec3 in_Normal;
-   layout(location = 2) in vec3 in_Matrices;
+   layout(location = 2) in vec4 in_Matrices;
 
    // Varying:
    out vec4 fragPosition;
@@ -70,7 +70,10 @@ const char* vertShader = R"(
 
    void main(void)
    {
-      fragPosition = invCamera * vec4(in_Position + in_Matrices, 1.0f);
+      fragPosition = invCamera * mat4(in_Matrices.w, 0.0, 0.0, 0.0,
+                                        0.0, in_Matrices.w, 0.0, 0.0,
+                                        0.0, 0.0, in_Matrices.w, 0.0,
+                                        in_Matrices.x, in_Matrices.y, in_Matrices.z, 1.0) * vec4(in_Position, 1.0);
       gl_Position = projection * fragPosition;      
       normal = normalMatrix * in_Normal;
    }

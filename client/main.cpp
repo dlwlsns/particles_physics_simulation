@@ -80,22 +80,24 @@ int main(int argc, char *argv[])
     // Load scene
     scene = new Node("Root");
 
-    Sphere* sphere = new Sphere("sphere", 10);
+    Sphere* sphere = new Sphere("sphere", 2);
     
-    int range = 30;
-    for (int x = -range/2; x < range / 2; x++) {
-        for (int y = -range / 2; y < range / 2; y++) {
-            for (int z = -range / 2; z < range / 2; z++) {
-                sphere->addMatrix(glm::vec3(x, y, z) * 10.0f);
+    float scale[5] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
+    int range = 50;
+
+    float dist = 1.0f;
+    for (int x = -range/2; x < (range / 2); x++) {
+        for (int y = -range/2; y < (range / 2); y++) {
+            for (int z = -range/2; z < (range / 2); z++) {
+                sphere->addMatrix(glm::vec4(x * dist, y * dist, z * dist, scale[(rand() % 5)]));
             }
         }
     }
     scene->addChild(sphere);
-    
 
     // Add cameras to the scene
     Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 2000.0f, 45.0f, 1.0f);
-    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-20.0f, 20.0f, 20.0f))
+    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-50.0f, 50.0f, 50.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 1.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     staticCam->setObjectCoordinates(s_camera_M);

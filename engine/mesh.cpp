@@ -57,11 +57,11 @@ bool Mesh::isBoundingSphereEnabled() {
     return this->boundingSphere;
 }
 
-void Mesh::addMatrix(glm::vec3 matrix) {
+void Mesh::addMatrix(glm::vec4 matrix) {
     this->matrices.push_back(matrix);
 }
 
-std::vector<glm::vec3> Mesh::getMatrices() {
+std::vector<glm::vec4> Mesh::getMatrices() {
     return this->matrices;
 }
 
@@ -91,7 +91,7 @@ void Mesh::initVAO()
 
         glGenBuffers(1, &vboMatrices);
         glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
-        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec3), &matrices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_STATIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -103,7 +103,7 @@ void Mesh::initVAO()
 
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
         glVertexAttribDivisor(2, 1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
