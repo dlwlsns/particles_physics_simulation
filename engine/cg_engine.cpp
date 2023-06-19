@@ -7,6 +7,7 @@
 // C/C++:
 #include <iostream>
 #include <vector>
+#include <chrono>
 // Glew (include it before GL.h):
 #include <GL/glew.h>
 
@@ -56,7 +57,7 @@ const char* vertShader = R"(
     // Uniforms:
     uniform mat4 invCamera;
     uniform mat4 projection;
-    uniform mat4 modelview;
+    uniform float deltaFrameTime;
     mat3 normalMatrix;
 
     // Attributes:
@@ -77,24 +78,31 @@ const char* vertShader = R"(
     out vec4 fragPosition;
     out vec3 normal;   
 
-    vec3 gravity = vec3(0.0, -0.000001, 0.0); // should be -9.81
+    vec3 gravity = vec3(0.0, -9.81, 0.0);
     float mass = 5.0;
+
+    float deltaTimeSquared;
 
     void main(void)
     {
-        // after need to sum forces
-        //vec3 f = mass * gravity;
+        if(deltaFrameTime > 0.0){
+            // divided by 1000000000 * 1000000000 because acceleration formula is: a = v/s^2
+            deltaTimeSquared = deltaFrameTime / (1000 * 1000);
 
-        velocity[gl_InstanceID].x += gravity.x;
-        velocity[gl_InstanceID].y += gravity.y;
-        velocity[gl_InstanceID].z += gravity.z;
+            // after need to sum forces
+            //vec3 f = mass * gravity;
 
-        matrices[gl_InstanceID].x += velocity[gl_InstanceID].x;
-        matrices[gl_InstanceID].y += velocity[gl_InstanceID].y;
-        matrices[gl_InstanceID].z += velocity[gl_InstanceID].z;
+            velocity[gl_InstanceID].x += gravity.x * deltaTimeSquared * 0.99;
+            velocity[gl_InstanceID].y += gravity.y * deltaTimeSquared * 0.99;
+            velocity[gl_InstanceID].z += gravity.z * deltaTimeSquared * 0.99;
 
-        if(matrices[gl_InstanceID].y <= (1.0 * matrices[gl_InstanceID].w)){
-            velocity[gl_InstanceID].y *= -0.95;
+            matrices[gl_InstanceID].x += velocity[gl_InstanceID].x;
+            matrices[gl_InstanceID].y += velocity[gl_InstanceID].y;
+            matrices[gl_InstanceID].z += velocity[gl_InstanceID].z;
+
+            if(matrices[gl_InstanceID].y <= (1.0 * matrices[gl_InstanceID].w)){
+                velocity[gl_InstanceID].y *= -0.95;
+            }
         }
 
         fragPosition = invCamera * mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
@@ -444,6 +452,8 @@ void timerCallback(int value)
  */
 void displayCallback()
 {
+    auto t_start = std::chrono::high_resolution_clock::now();
+
     // Clear the screen:         
     glClearColor(0.0f, 0.5f, 1.0f, 1.0f); // RGBA components
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -455,6 +465,8 @@ void displayCallback()
     // Swap this context's buffer:  
     frames++;
     glutSwapBuffers();
+
+    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count();
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);

@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     Sphere* sphere = new Sphere("sphere", 2);
     
     float scale[5] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
-    int range = 20;
+    int range = 5;
 
     float dist = 2.0f;
     srand((unsigned)time(NULL));

@@ -3,6 +3,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
+
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
@@ -13,9 +14,11 @@
 #include "sphere.h"
 #include "shaderGlobals.h"
 
+auto deltaFrameTime = 0.0f;
+
 RenderItem::RenderItem(Mesh* node) : node(node) {};
 
-RenderList::RenderList(char* name) : Object(name) {}
+RenderList::RenderList(char* name) : Object(name), deltaFrameTime(0.0f) {}
 
 RenderList::~RenderList() {
 	std::cout << "Deleted render list" << std::endl;
@@ -53,6 +56,7 @@ void RenderList::sort() {
 
 void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
+	glUniform1f(shaders.getActiveShader()->getParamLocation("deltaFrameTime"), deltaFrameTime);
 
 	for (RenderItem* item : items)
 	{

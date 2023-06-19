@@ -17,6 +17,8 @@ class RenderList : public Object
 	private:
 		std::vector<RenderItem*> items;
 	public:
+		float deltaFrameTime;
+
 		RenderList(char* name);
 		virtual ~RenderList();
 
