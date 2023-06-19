@@ -83,26 +83,31 @@ int main(int argc, char *argv[])
     Sphere* sphere = new Sphere("sphere", 2);
     
     float scale[5] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
-    int range = 50;
+    int range = 20;
 
-    float dist = 1.0f;
+    float dist = 2.0f;
+    srand((unsigned)time(NULL));
     for (int x = -range/2; x < (range / 2); x++) {
-        for (int y = -range/2; y < (range / 2); y++) {
-            for (int z = -range/2; z < (range / 2); z++) {
-                sphere->addMatrix(glm::vec4(x * dist, y * dist, z * dist, scale[(rand() % 5)]));
-            }
+        for (int z = -range/2; z < (range / 2); z++) {
+            sphere->addTransform(glm::vec4(x * dist, 10.0f, z * dist, scale[(rand() % 5)]));
+            sphere->addVelocity(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
         }
     }
     scene->addChild(sphere);
 
     // Add cameras to the scene
     Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 2000.0f, 45.0f, 1.0f);
-    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-50.0f, 50.0f, 50.0f))
+    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 15.0f, 10.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 1.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     staticCam->setObjectCoordinates(s_camera_M);
 
     scene->addChild(staticCam);
+
+    Light* light = new DirectionalLight("light", 100);
+    light->setObjectCoordinates(s_camera_M);
+
+    scene->addChild(light);
 
     // Parse selected scene and run
     engine->parse(scene);

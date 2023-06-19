@@ -17,5 +17,5 @@ PointLight::~PointLight() {
 }
 
 void PointLight::render(glm::mat4 inverseCamera) {
-	Light::render(inverseCamera);
+	Light::render();
 };

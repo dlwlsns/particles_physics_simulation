@@ -21,7 +21,7 @@ class LIB_API Light : public Node
 		Light(char* name, float radius);
 		virtual ~Light();
 
-		virtual void render(glm::mat4 inverseCamera_M);
+		virtual void render();
 
 		int getLightId();
 

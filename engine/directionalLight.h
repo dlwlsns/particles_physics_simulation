@@ -9,6 +9,6 @@ public:
 	DirectionalLight(char* name, float radius);
 	virtual ~DirectionalLight();
 
-	virtual void render(glm::mat4 inverseCamera_M);
+	virtual void render();
 };
 

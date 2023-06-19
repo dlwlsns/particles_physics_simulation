@@ -57,12 +57,20 @@ bool Mesh::isBoundingSphereEnabled() {
     return this->boundingSphere;
 }
 
-void Mesh::addMatrix(glm::vec4 matrix) {
+void Mesh::addTransform(glm::vec4 matrix) {
     this->matrices.push_back(matrix);
 }
 
 std::vector<glm::vec4> Mesh::getMatrices() {
     return this->matrices;
+}
+
+void Mesh::addVelocity(glm::vec4 matrix) {
+    this->velocities.push_back(matrix);
+}
+
+std::vector<glm::vec4> Mesh::getVelocities() {
+    return this->velocities;
 }
 
 void Mesh::initVAO()
@@ -89,9 +97,13 @@ void Mesh::initVAO()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(unsigned int), &faces[0], GL_STATIC_DRAW);
 
-        glGenBuffers(1, &vboMatrices);
-        glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
-        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_STATIC_DRAW);
+        glGenBuffers(1, &ssboTransform);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_DYNAMIC_COPY);
+
+        glGenBuffers(1, &ssboVelocity);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, velocities.size() * sizeof(glm::vec4), &velocities[0], GL_DYNAMIC_COPY);
 
         glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -101,10 +113,11 @@ void Mesh::initVAO()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
 
-        glEnableVertexAttribArray(2);
-        glBindBuffer(GL_ARRAY_BUFFER, vboMatrices);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glVertexAttribDivisor(2, 1);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTransform);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboVelocity);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
 

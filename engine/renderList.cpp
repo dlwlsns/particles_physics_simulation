@@ -8,7 +8,7 @@
 
 
 #include "renderList.h"
-#include "light.h"
+#include "directionalLight.h"
 #include "mesh.h"
 #include "sphere.h"
 #include "shaderGlobals.h"
@@ -56,19 +56,25 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 
 	for (RenderItem* item : items)
 	{
-		if (dynamic_cast<const Sphere*>(item->node) != nullptr) {
-			(dynamic_cast<Sphere*>(item->node))->initVAO();
+		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
+			Mesh* mesh = (dynamic_cast<Mesh*>(item->node));
+			mesh->initVAO();
+
+			unsigned int vao = item->node->getVAO();
+			int facesCount = item->node->getFaces().size();
+
+			glBindVertexArray(vao);
+
+			//for (int i = 0; i < item->matrices.size(); i++) {
+				//glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
+			//}
+			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
 		}
-
-		unsigned int vao = item->node->getVAO();
-		int facesCount = item->node->getFaces().size();
-
-		glBindVertexArray(vao);
+		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
+			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));
+			light->render();
+		}
 		
-		for (int i = 0; i < item->matrices.size(); i++) {
-			//glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
-		}
-		glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
 	}
 
 	glBindVertexArray(0);
