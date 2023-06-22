@@ -39,10 +39,6 @@ void Sphere::createFace(glm::vec3 normal, int resolution) {
         this->addFace(faces);
     }
 
-    for (int i = 0; i < triangles.size() / 3; i++) {
-        this->addNormal(normal);
-    }
-
     for (int i = 0; i < verticies.size(); i++) {
         float x2 = verticies[i].x * verticies[i].x;
         float y2 = verticies[i].y * verticies[i].y;
@@ -52,6 +48,7 @@ void Sphere::createFace(glm::vec3 normal, int resolution) {
         float z = verticies[i].z * sqrt(1 - (x2 + y2) / 2 + (x2 * y2) / 3);
 
         this->addVertex(glm::vec3(x, y, z));
+        this->addNormal(glm::normalize(glm::vec3(x, y, z) - glm::vec3(0.0)));
     }
 }
 

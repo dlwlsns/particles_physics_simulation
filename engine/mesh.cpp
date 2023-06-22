@@ -123,7 +123,7 @@ void Mesh::initVAO()
 
         glBindVertexArray(0);
 
-        std::cout << "Verticies: " << N << " - Faces: " << faces.size()/3 << std::endl;
+        std::cout << "Verticies: " << N << " - Faces: " << faces.size()/3 << " - Normals: " << normals.size() << std::endl;
 
         isVaoInit = true;
     }
