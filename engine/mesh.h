@@ -9,6 +9,7 @@ class LIB_API Mesh : public Node
 		unsigned int vboVertex;
 		unsigned int vboNormals;
 		unsigned int vboFace;
+		unsigned int vboTransform;
 		unsigned int ssboTransform;
 		unsigned int ssboVelocity;
 		unsigned int ssboAcceleration;
@@ -16,8 +17,10 @@ class LIB_API Mesh : public Node
 		std::vector<glm::vec3> verticies;
 		std::vector<glm::vec3> normals;
 		std::vector<unsigned int> faces;
-		std::vector<glm::vec4> matrices;
 		std::vector<glm::vec4> velocities;
+
+		std::vector<glm::vec4> matrices;
+		std::vector<glm::vec4> pingPongMatrices;
 
 		Material* material;
 		bool isVaoInit;
@@ -48,6 +51,7 @@ class LIB_API Mesh : public Node
 
 		void initVAO();
 		unsigned int getVAO();
+		void pingPongBufferSwap();
 
 		virtual void render(glm::mat4 inverseCamera_M);
 };

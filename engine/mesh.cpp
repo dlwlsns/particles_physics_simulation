@@ -59,6 +59,7 @@ bool Mesh::isBoundingSphereEnabled() {
 
 void Mesh::addTransform(glm::vec4 matrix) {
     this->matrices.push_back(matrix);
+    this->pingPongMatrices.push_back(matrix);
 }
 
 std::vector<glm::vec4> Mesh::getMatrices() {
@@ -97,9 +98,13 @@ void Mesh::initVAO()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(unsigned int), &faces[0], GL_STATIC_DRAW);
 
+        glGenBuffers(1, &vboTransform);
+        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
+        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_STATIC_DRAW);
+
         glGenBuffers(1, &ssboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_DYNAMIC_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_DYNAMIC_COPY);
 
         glGenBuffers(1, &ssboVelocity);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
@@ -113,11 +118,16 @@ void Mesh::initVAO()
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(1);
 
+        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(2);
+        glVertexAttribDivisor(2, 1);
+
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssboTransform);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboVelocity);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboVelocity);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboFace);
 
@@ -136,4 +146,38 @@ unsigned int Mesh::getVAO() {
 void Mesh::render(glm::mat4 inverseCamera) {
     //if (this->getMaterial() != nullptr)
     //    this->getMaterial()->render(inverseCamera);
+}
+
+bool ppBuffer = true;
+void Mesh::pingPongBufferSwap() {
+    glBindVertexArray(vaoGlobal);
+
+    if (ppBuffer) {
+        glGenBuffers(1, &vboTransform);
+        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
+        glBufferData(GL_ARRAY_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(2);
+        glVertexAttribDivisor(2, 1);
+
+        glGenBuffers(1, &ssboTransform);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);
+    }
+    else {
+        glGenBuffers(1, &vboTransform);
+        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
+        glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(2);
+        glVertexAttribDivisor(2, 1);
+
+        glGenBuffers(1, &ssboTransform);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);
+    }
+    
+    ppBuffer = !ppBuffer;
 }

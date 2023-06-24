@@ -56,7 +56,7 @@ void RenderList::sort() {
 
 void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
-	glUniform1f(shaders.getActiveShader()->getParamLocation("deltaFrameTime"), deltaFrameTime);
+	glUniform1fv(shaders.getShaderById(0)->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
 
 	for (RenderItem* item : items)
 	{
@@ -68,11 +68,10 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 			int facesCount = item->node->getFaces().size();
 
 			glBindVertexArray(vao);
+			//mesh->pingPongBufferSwap();
 
-			//for (int i = 0; i < item->matrices.size(); i++) {
-				//glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
-			//}
 			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
+			
 		}
 		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
 			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));

@@ -63,46 +63,47 @@ const char* vertShader = R"(
     // Attributes:
     layout(location = 0) in vec3 in_Position;
     layout(location = 1) in vec3 in_Normal;
+    layout(location = 2) in vec4 in_Transform;
 
-    layout (std430, binding = 2) buffer ssboTransform
+    layout (std430, binding = 3) buffer ssboTransform
     {
         vec4 matrices[];
     };
 
-    layout (std430, binding = 3) buffer ssboVelocity
+    layout (std430, binding = 4) buffer ssboVelocity
     {
         vec4 velocity[];
     };
 
     // Varying:
     out vec4 fragPosition;
-    out vec3 normal;   
+    out vec3 normal;
 
     vec3 gravity = vec3(0.0, -9.81, 0.0);
     float mass = 5.0;
 
-    float deltaTimeSquared;
-
     void main(void)
     {
         if(deltaFrameTime > 0.0){
-            // divided by 1000000000 * 1000000000 because acceleration formula is: a = v/s^2
-            deltaTimeSquared = deltaFrameTime / (1000 * 1000);
-
             // after need to sum forces
-            //vec3 f = mass * gravity;
+            vec3 f = mass * gravity;
+            vec3 a = f / mass;
 
-            velocity[gl_InstanceID].x += gravity.x * deltaTimeSquared * 0.99;
-            velocity[gl_InstanceID].y += gravity.y * deltaTimeSquared * 0.99;
-            velocity[gl_InstanceID].z += gravity.z * deltaTimeSquared * 0.99;
-
-            matrices[gl_InstanceID].x += velocity[gl_InstanceID].x;
-            matrices[gl_InstanceID].y += velocity[gl_InstanceID].y;
-            matrices[gl_InstanceID].z += velocity[gl_InstanceID].z;
-
-            if(matrices[gl_InstanceID].y <= (1.0 * matrices[gl_InstanceID].w)){
-                velocity[gl_InstanceID].y *= -0.95;
+            if(matrices[gl_InstanceID].y <= matrices[gl_InstanceID].w){
+                velocity[gl_InstanceID].y *= -1.0;
+                velocity[gl_InstanceID].y -= (velocity[gl_InstanceID].y * 0.1f);
             }
+
+            vec3 v = vec3(velocity[gl_InstanceID].x, velocity[gl_InstanceID].y, velocity[gl_InstanceID].z);
+
+            v += a;
+            velocity[gl_InstanceID].x += v.x * deltaFrameTime;
+            velocity[gl_InstanceID].y += v.y * deltaFrameTime;
+            velocity[gl_InstanceID].z += v.z * deltaFrameTime;
+
+            matrices[gl_InstanceID].x += (velocity[gl_InstanceID].x);
+            matrices[gl_InstanceID].y += (velocity[gl_InstanceID].y);
+            matrices[gl_InstanceID].z += (velocity[gl_InstanceID].z);
         }
 
         fragPosition = invCamera * mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
@@ -125,7 +126,8 @@ const char* directLightfragShader = R"(
    #version 450 core
 
    in vec4 fragPosition;
-   in vec3 normal;   
+   in vec3 normal;  
+   in vec3 c;
    
    out vec4 fragOutput;
 
@@ -466,7 +468,7 @@ void displayCallback()
     frames++;
     glutSwapBuffers();
 
-    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count();
+    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000000;
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);
