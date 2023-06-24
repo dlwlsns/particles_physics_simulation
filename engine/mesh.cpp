@@ -153,27 +153,27 @@ void Mesh::pingPongBufferSwap() {
     glBindVertexArray(vaoGlobal);
 
     if (ppBuffer) {
-        glGenBuffers(1, &vboTransform);
+        //glGenBuffers(1, &vboTransform);
         glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
         glBufferData(GL_ARRAY_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_STATIC_DRAW);
         glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(2);
         glVertexAttribDivisor(2, 1);
 
-        glGenBuffers(1, &ssboTransform);
+        //glGenBuffers(1, &ssboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
         glBufferData(GL_SHADER_STORAGE_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);
     }
     else {
-        glGenBuffers(1, &vboTransform);
+        //glGenBuffers(1, &vboTransform);
         glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
         glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_STATIC_DRAW);
         glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(2);
         glVertexAttribDivisor(2, 1);
 
-        glGenBuffers(1, &ssboTransform);
+        //glGenBuffers(1, &ssboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
         glBufferData(GL_SHADER_STORAGE_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);

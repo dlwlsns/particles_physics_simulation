@@ -90,20 +90,27 @@ const char* vertShader = R"(
             vec3 a = f / mass;
 
             if(matrices[gl_InstanceID].y <= matrices[gl_InstanceID].w){
-                velocity[gl_InstanceID].y *= -1.0;
-                velocity[gl_InstanceID].y -= (velocity[gl_InstanceID].y * 0.1f);
+                //velocity[gl_InstanceID].y *= -1.0;
+
+                vec3 v0 = vec3(velocity[gl_InstanceID].x, velocity[gl_InstanceID].y, velocity[gl_InstanceID].z);
+                float k = 0.5 * mass * length(v0) * length(v0);
+                k *= 0.8;
+                v0.y = sqrt(k / mass / 0.5);
+                velocity[gl_InstanceID].x = v0.x;
+                velocity[gl_InstanceID].y = v0.y;
+                velocity[gl_InstanceID].z = v0.z;
             }
 
-            vec3 v = vec3(velocity[gl_InstanceID].x, velocity[gl_InstanceID].y, velocity[gl_InstanceID].z);
+            vec3 v = vec3(0.0);
 
-            v += a;
-            velocity[gl_InstanceID].x += v.x * deltaFrameTime;
-            velocity[gl_InstanceID].y += v.y * deltaFrameTime;
-            velocity[gl_InstanceID].z += v.z * deltaFrameTime;
+            v += a * deltaFrameTime;
+            velocity[gl_InstanceID].x += v.x;
+            velocity[gl_InstanceID].y += v.y;
+            velocity[gl_InstanceID].z += v.z;
 
-            matrices[gl_InstanceID].x += (velocity[gl_InstanceID].x);
-            matrices[gl_InstanceID].y += (velocity[gl_InstanceID].y);
-            matrices[gl_InstanceID].z += (velocity[gl_InstanceID].z);
+            matrices[gl_InstanceID].x += (velocity[gl_InstanceID].x * deltaFrameTime);
+            matrices[gl_InstanceID].y += (velocity[gl_InstanceID].y * deltaFrameTime);
+            matrices[gl_InstanceID].z += (velocity[gl_InstanceID].z * deltaFrameTime);
         }
 
         fragPosition = invCamera * mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
@@ -468,7 +475,7 @@ void displayCallback()
     frames++;
     glutSwapBuffers();
 
-    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000000;
+    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);
@@ -565,7 +572,7 @@ bool CgEngine::init(int argc, char* argv[])
     //Set context to opengl4
     glutInitContextVersion(4, 5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
-    glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
+    //glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
     // Set some optional flags:
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
