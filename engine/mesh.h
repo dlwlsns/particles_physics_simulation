@@ -9,6 +9,7 @@ class LIB_API Mesh : public Node
 		unsigned int vboVertex;
 		unsigned int vboNormals;
 		unsigned int vboFace;
+		unsigned int vboColor;
 		unsigned int vboTransform;
 		unsigned int ssboTransform;
 		unsigned int ssboVelocity;
@@ -18,6 +19,7 @@ class LIB_API Mesh : public Node
 		std::vector<glm::vec3> normals;
 		std::vector<unsigned int> faces;
 		std::vector<glm::vec4> velocities;
+		
 
 		std::vector<glm::vec4> matrices;
 		std::vector<glm::vec4> pingPongMatrices;
@@ -28,6 +30,7 @@ class LIB_API Mesh : public Node
 		float boundingSphereRadius;
 		bool boundingSphere;
 	public:
+		std::vector<glm::vec3> colors;
 		Mesh(char* name);
 		virtual ~Mesh();
 

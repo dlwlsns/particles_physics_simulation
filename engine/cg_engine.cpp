@@ -75,15 +75,20 @@ const char* vertShader = R"(
         vec4 velocity[];
     };
 
+    layout(location = 10) in vec3 in_Color;
+
     // Varying:
     out vec4 fragPosition;
     out vec3 normal;
+    out vec3 c;
 
     vec3 gravity = vec3(0.0, -9.81, 0.0);
-    float mass = 5.0;
+    
 
     void main(void)
     {
+        float mass = velocity[gl_InstanceID].w;
+
         if(deltaFrameTime > 0.0){
             // after need to sum forces
             vec3 f = mass * gravity;
@@ -124,6 +129,7 @@ const char* vertShader = R"(
         
         gl_Position = projection * fragPosition;
         normal = normalMatrix * in_Normal;
+        c = vec3(in_Color[gl_InstanceID]);
     }
 )";
 
@@ -174,64 +180,6 @@ const char* directLightfragShader = R"(
       fragOutput = vec4(normal, 1.0f);
       //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
    }
-)";
-
-
-//TODO fix spotlightshader and introduce pointlight shader
-// the problem in the spotlight is the apotlightAttenuation variable that breaks everything, we may need to rewrite the math
-
-////////////////////////////
-// Spot Light
-const char* spotlightFragShader = R"(
-    #version 450 core
-
-    in vec4 fragPosition;
-    in vec3 normal;   
-   
-    out vec4 fragOutput;
-
-    // Material properties:
-    uniform vec3 matEmission;
-    uniform vec3 matAmbient;
-    uniform vec3 matDiffuse;
-    uniform vec3 matSpecular;
-    uniform float matShininess;
-
-    // Light properties:
-    uniform vec3 lightPosition; 
-    uniform vec3 lightAmbient; 
-    uniform vec3 lightDiffuse; 
-    uniform vec3 lightSpecular;
-
-    uniform vec3 lightDirection; // spotlight direction
-    uniform float lightConeAngle; // spotlight cone angle
-
-    void main(void)
-    {      
-        // Ambient term:
-        vec3 fragColor = matEmission + matAmbient * lightAmbient;
-
-        // Diffuse term:
-        vec3 _normal = normalize(normal);
-        vec3 lightToFragment = normalize(fragPosition.xyz - lightPosition);
-        float nDotL = dot(lightToFragment, _normal);   
-        if (nDotL >= 0.0f)
-        {
-            // Spotlight attenuation:
-            float spotlightAngleCos = dot(-lightToFragment, lightDirection);
-            float spotlightAttenuation = smoothstep(lightConeAngle, lightConeAngle * 0.75, spotlightAngleCos);
-
-            fragColor += matDiffuse * nDotL * lightDiffuse;// * spotlightAttenuation;
-
-            // Specular term:
-            vec3 halfVector = normalize(lightToFragment + normalize(-fragPosition.xyz));                     
-            float nDotHV = dot(_normal, halfVector);         
-            fragColor += matSpecular * pow(nDotHV, matShininess) * lightSpecular; //* spotlightAttenuation;
-        } 
-      
-        // Final color:
-        fragOutput = vec4(fragColor, 1.0f);
-    }
 )";
 
 /////////////////////////////
@@ -640,24 +588,14 @@ bool CgEngine::init(int argc, char* argv[])
     Shader* fs = new Shader("Fragment");
     fs->loadFromMemory(Shader::TYPE_FRAGMENT, directLightfragShader);
 
-    // Compile fragment shader:
-    Shader* fs2 = new Shader("spotlight");
-    fs2->loadFromMemory(Shader::TYPE_FRAGMENT, spotlightFragShader);
-
     // Setup shader program:
     Shader* shader = new Shader("directLight");
     shader->build(vs, fs);
     shader->use();
     shader->bind(0, "in_Position");
     shader->bind(1, "in_Normal");
-
-    Shader* shader2 = new Shader("spotlight");
-    shader2->build(vs, fs2);
-    shader2->use();
-    shader2->bind(0, "in_Position");
-    shader2->bind(1, "in_Normal");
-
-    
+    shader->bind(2, "in_Transform");
+    shader->bind(10, "in_Color");
 
 
     /*
@@ -686,7 +624,6 @@ bool CgEngine::init(int argc, char* argv[])
     shader->setVec3(lightPositionLoc, glm::vec3(10, 10, 0));*/
 
     shaders.addShader(shader);
-    shaders.addShader(shader2);
 
     shaders.activateShader(0);
 
