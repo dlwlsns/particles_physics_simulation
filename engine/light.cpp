@@ -83,7 +83,7 @@ void Light::setCutoff(float cutoff) {
 	this->cutoff = cutoff;
 }
 
-void Light::render(glm::mat4 inverseCamera_M) {
+void Light::render() {
 	Shader* current_shader = shaders.getActiveShader();
 
 	int lightPositionLoc = current_shader->getParamLocation("lightPosition");

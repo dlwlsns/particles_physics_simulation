@@ -7,6 +7,7 @@
 // C/C++:
 #include <iostream>
 #include <vector>
+#include <chrono>
 // Glew (include it before GL.h):
 #include <GL/glew.h>
 
@@ -51,32 +52,79 @@ int frames = 0;
 ShaderGlobals shaders;
 ////////////////////////////
 const char* vertShader = R"(
-   #version 450 core
+    #version 450 core
 
-   // Uniforms:
-   uniform mat4 invCamera;
-   uniform mat4 projection;
-   uniform mat4 modelview;
-   uniform mat3 normalMatrix;
+    // Uniforms:
+    uniform mat4 invCamera;
+    uniform mat4 projection;
+    uniform float deltaFrameTime;
+    mat3 normalMatrix;
 
-   // Attributes:
-   layout(location = 0) in vec3 in_Position;
-   layout(location = 1) in vec3 in_Normal;
-   layout(location = 2) in vec4 in_Matrices;
+    // Attributes:
+    layout(location = 0) in vec3 in_Position;
+    layout(location = 1) in vec3 in_Normal;
+    layout(location = 2) in vec4 in_Transform;
 
-   // Varying:
-   out vec4 fragPosition;
-   out vec3 normal;   
+    layout (std430, binding = 3) buffer ssboTransform
+    {
+        vec4 matrices[];
+    };
 
-   void main(void)
-   {
-      fragPosition = invCamera * mat4(in_Matrices.w, 0.0, 0.0, 0.0,
-                                        0.0, in_Matrices.w, 0.0, 0.0,
-                                        0.0, 0.0, in_Matrices.w, 0.0,
-                                        in_Matrices.x, in_Matrices.y, in_Matrices.z, 1.0) * vec4(in_Position, 1.0);
-      gl_Position = projection * fragPosition;      
-      normal = normalMatrix * in_Normal;
-   }
+    layout (std430, binding = 4) buffer ssboVelocity
+    {
+        vec4 velocity[];
+    };
+
+    // Varying:
+    out vec4 fragPosition;
+    out vec3 normal;
+
+    vec3 gravity = vec3(0.0, -9.81, 0.0);
+    float mass = 5.0;
+
+    void main(void)
+    {
+        if(deltaFrameTime > 0.0){
+            // after need to sum forces
+            vec3 f = mass * gravity;
+            vec3 a = f / mass;
+
+            if(matrices[gl_InstanceID].y <= matrices[gl_InstanceID].w){
+                //velocity[gl_InstanceID].y *= -1.0;
+
+                vec3 v0 = vec3(velocity[gl_InstanceID].x, velocity[gl_InstanceID].y, velocity[gl_InstanceID].z);
+                float k = 0.5 * mass * length(v0) * length(v0);
+                k *= 0.8;
+                v0.y = sqrt(k / mass / 0.5);
+                velocity[gl_InstanceID].x = v0.x;
+                velocity[gl_InstanceID].y = v0.y;
+                velocity[gl_InstanceID].z = v0.z;
+            }
+
+            vec3 v = vec3(0.0);
+
+            v += a * deltaFrameTime;
+            velocity[gl_InstanceID].x += v.x;
+            velocity[gl_InstanceID].y += v.y;
+            velocity[gl_InstanceID].z += v.z;
+
+            matrices[gl_InstanceID].x += (velocity[gl_InstanceID].x * deltaFrameTime);
+            matrices[gl_InstanceID].y += (velocity[gl_InstanceID].y * deltaFrameTime);
+            matrices[gl_InstanceID].z += (velocity[gl_InstanceID].z * deltaFrameTime);
+        }
+
+        fragPosition = invCamera * mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
+                                        0.0, matrices[gl_InstanceID].w, 0.0, 0.0,
+                                        0.0, 0.0, matrices[gl_InstanceID].w, 0.0,
+                                        matrices[gl_InstanceID].x, matrices[gl_InstanceID].y, matrices[gl_InstanceID].z, 1.0) * vec4(in_Position, 1.0);
+        normalMatrix = inverse(transpose(mat3(mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
+                                        0.0, matrices[gl_InstanceID].w, 0.0, 0.0,
+                                        0.0, 0.0, matrices[gl_InstanceID].w, 0.0,
+                                        matrices[gl_InstanceID].x, matrices[gl_InstanceID].y, matrices[gl_InstanceID].z, 1.0))));
+        
+        gl_Position = projection * fragPosition;
+        normal = normalMatrix * in_Normal;
+    }
 )";
 
 ////////////////////////////
@@ -85,7 +133,8 @@ const char* directLightfragShader = R"(
    #version 450 core
 
    in vec4 fragPosition;
-   in vec3 normal;   
+   in vec3 normal;  
+   in vec3 c;
    
    out vec4 fragOutput;
 
@@ -122,7 +171,7 @@ const char* directLightfragShader = R"(
       } 
       
       // Final color:
-      fragOutput = vec4(fragColor, 1.0f);
+      fragOutput = vec4(normal, 1.0f);
       //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
    }
 )";
@@ -412,6 +461,8 @@ void timerCallback(int value)
  */
 void displayCallback()
 {
+    auto t_start = std::chrono::high_resolution_clock::now();
+
     // Clear the screen:         
     glClearColor(0.0f, 0.5f, 1.0f, 1.0f); // RGBA components
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -423,6 +474,8 @@ void displayCallback()
     // Swap this context's buffer:  
     frames++;
     glutSwapBuffers();
+
+    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);
@@ -517,9 +570,9 @@ bool CgEngine::init(int argc, char* argv[])
     glutTimerFunc(1000, timerCallback, 0);
 
     //Set context to opengl4
-    glutInitContextVersion(4, 4);
+    glutInitContextVersion(4, 5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
-    glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
+    //glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
     // Set some optional flags:
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
@@ -562,7 +615,8 @@ bool CgEngine::init(int argc, char* argv[])
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     // Set lighting options
-    //glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
     glEnable(GL_CULL_FACE);
     //glEnable(GL_NORMALIZE);
 

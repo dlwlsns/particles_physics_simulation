@@ -3,19 +3,22 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
+
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
 
 #include "renderList.h"
-#include "light.h"
+#include "directionalLight.h"
 #include "mesh.h"
 #include "sphere.h"
 #include "shaderGlobals.h"
 
+auto deltaFrameTime = 0.0f;
+
 RenderItem::RenderItem(Mesh* node) : node(node) {};
 
-RenderList::RenderList(char* name) : Object(name) {}
+RenderList::RenderList(char* name) : Object(name), deltaFrameTime(0.0f) {}
 
 RenderList::~RenderList() {
 	std::cout << "Deleted render list" << std::endl;
@@ -53,22 +56,28 @@ void RenderList::sort() {
 
 void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
+	glUniform1fv(shaders.getShaderById(0)->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
 
 	for (RenderItem* item : items)
 	{
-		if (dynamic_cast<const Sphere*>(item->node) != nullptr) {
-			(dynamic_cast<Sphere*>(item->node))->initVAO();
+		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
+			Mesh* mesh = (dynamic_cast<Mesh*>(item->node));
+			mesh->initVAO();
+
+			unsigned int vao = item->node->getVAO();
+			int facesCount = item->node->getFaces().size();
+
+			glBindVertexArray(vao);
+			//mesh->pingPongBufferSwap();
+
+			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
+			
 		}
-
-		unsigned int vao = item->node->getVAO();
-		int facesCount = item->node->getFaces().size();
-
-		glBindVertexArray(vao);
+		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
+			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));
+			light->render();
+		}
 		
-		for (int i = 0; i < item->matrices.size(); i++) {
-			//glUniformMatrix3fv(current_shader->getParamLocation("normalMatrix"), 1, GL_TRUE, glm::value_ptr(glm::inverse(glm::mat3(item->matrices[i]))));
-		}
-		glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
 	}
 
 	glBindVertexArray(0);
