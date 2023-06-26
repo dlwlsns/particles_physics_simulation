@@ -80,6 +80,9 @@ public:
 
 	virtual void render(glm::mat4 inverseCamera_M);
 
+	// OGL id:
+	GLuint glId;
+
 	///////////	 
 private:	//
 ///////////					
@@ -87,7 +90,6 @@ private:	//
    // Object kind:
 	int type;
 
-	// OGL id:
-	GLuint glId;
+	
 };
 

@@ -63,19 +63,21 @@ const char* vertShader = R"(
     // Attributes:
     layout(location = 0) in vec3 in_Position;
     layout(location = 1) in vec3 in_Normal;
-    layout(location = 2) in vec4 in_Transform;
+    layout(location = 2) in vec3 in_Color;
+    layout(location = 3) in vec4 in_Transform;
 
-    layout (std430, binding = 3) buffer ssboTransform
+
+    layout (std430, binding = 4) buffer ssboTransform
     {
         vec4 matrices[];
     };
 
-    layout (std430, binding = 4) buffer ssboVelocity
+    layout (std430, binding = 5) buffer ssboVelocity
     {
         vec4 velocity[];
     };
 
-    layout(location = 10) in vec3 in_Color;
+    
 
     // Varying:
     out vec4 fragPosition;
@@ -126,10 +128,19 @@ const char* vertShader = R"(
                                         0.0, matrices[gl_InstanceID].w, 0.0, 0.0,
                                         0.0, 0.0, matrices[gl_InstanceID].w, 0.0,
                                         matrices[gl_InstanceID].x, matrices[gl_InstanceID].y, matrices[gl_InstanceID].z, 1.0))));
+
+        /*fragPosition = invCamera * mat4(in_Transform.w, 0.0, 0.0, 0.0,
+                                        0.0, in_Transform.w, 0.0, 0.0,
+                                        0.0, 0.0, in_Transform.w, 0.0,
+                                        in_Transform.x, in_Transform.y, in_Transform.z, 1.0) * vec4(in_Position, 1.0);
+        normalMatrix = inverse(transpose(mat3(mat4(in_Transform.w, 0.0, 0.0, 0.0,
+                                        0.0,in_Transform.w, 0.0, 0.0,
+                                        0.0, 0.0, in_Transform.w, 0.0,
+                                        in_Transform.x, in_Transform.y, in_Transform.z, 1.0))));*/
         
         gl_Position = projection * fragPosition;
         normal = normalMatrix * in_Normal;
-        c = vec3(in_Color[gl_InstanceID]);
+        c = normalize(in_Color);
     }
 )";
 
@@ -159,25 +170,8 @@ const char* directLightfragShader = R"(
 
    void main(void)
    {      
-      // Ambient term:
-      vec3 fragColor = matEmission + matAmbient * lightAmbient;
-
-      // Diffuse term:
-      vec3 _normal = normalize(normal);
-      vec3 lightDirection = normalize(lightPosition - fragPosition.xyz);      
-      float nDotL = dot(lightDirection, _normal);   
-      if (nDotL >= 0.0f)
-      {
-         fragColor += matDiffuse * nDotL * lightDiffuse;
-      
-         // Specular term:
-         vec3 halfVector = normalize(lightDirection + normalize(-fragPosition.xyz));                     
-         float nDotHV = dot(_normal, halfVector);         
-         fragColor += matSpecular * pow(nDotHV, matShininess) * lightSpecular;
-      } 
-      
       // Final color:
-      fragOutput = vec4(normal, 1.0f);
+      fragOutput = vec4(c, 1.0f);
       //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
    }
 )";
