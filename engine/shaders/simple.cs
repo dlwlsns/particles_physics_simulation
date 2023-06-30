@@ -43,8 +43,6 @@ vec3 planeBounce(vec3 velocity, vec3 normal, float mass){
 
 void main(void)
 {
-    
-
     if(deltaFrameTime > 0.0){
         for(int i = 0; i < 1000; i++){
             float mass = velocity[i].w;
