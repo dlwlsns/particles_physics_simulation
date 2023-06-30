@@ -109,10 +109,6 @@ void Mesh::initVAO()
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(2);
         glVertexAttribDivisor(2, 1);
-        std::cout << colors.size() << std::endl;
-        for (int i = 0; i < colors.size(); i++) {
-            std::cout << glm::to_string(colors[i]) << std::endl;
-        }
 
         glGenBuffers(1, &vboTransform);
         glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
@@ -125,7 +121,6 @@ void Mesh::initVAO()
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
         glBufferData(GL_SHADER_STORAGE_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboTransform);
-        std::cout << matrices.size() << std::endl;
 
         glGenBuffers(1, &ssboVelocity);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
@@ -150,31 +145,20 @@ void Mesh::render(glm::mat4 inverseCamera) {
 }
 
 #include "shaderGlobals.h"
-bool ppBuffer = true;
+bool check = false;
 void Mesh::pingPongBufferSwap() {
     glBindVertexArray(vaoGlobal);
     Shader* current_shader = shaders.getShaderById(0);
     GLuint t0 = glGetAttribLocation(current_shader->glId, "ssboTransform");
     GLuint t1 = glGetAttribLocation(current_shader->glId, "in_Transform");
 
-    if (ppBuffer) {
-        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
-        glVertexAttribPointer(t1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(t1);
-        glVertexAttribDivisor(t1, 1);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, t0, ssboTransform);
+    if (!check) {
+        std::cout << current_shader->glId << " " << t0 << " " << t1 << std::endl;
+        check = true;
     }
-    else {
-        glBindBuffer(GL_ARRAY_BUFFER, vboTransform);
-        glVertexAttribPointer(t0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(t0);
-        glVertexAttribDivisor(t0, 1);
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, t1, ssboTransform);
-    }
-    
-    ppBuffer = !ppBuffer;
+    /*glBindAttribLocation(current_shader->glId, t1, "ssboTransform");
+    glBindAttribLocation(current_shader->glId, t0, "in_Transform");
+
+    glLinkProgram(current_shader->glId);*/
 }

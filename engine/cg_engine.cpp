@@ -50,131 +50,6 @@ int frames = 0;
 // SHADERS //
 /////////////
 ShaderGlobals shaders;
-////////////////////////////
-const char* vertShader = R"(
-    #version 450 core
-
-    // Uniforms:
-    uniform mat4 invCamera;
-    uniform mat4 projection;
-    uniform float deltaFrameTime;
-    mat3 normalMatrix;
-
-    // Attributes:
-    layout(location = 0) in vec3 in_Position;
-    layout(location = 1) in vec3 in_Normal;
-    layout(location = 2) in vec3 in_Color;
-    layout(location = 3) in vec4 in_Transform;
-
-
-    layout (std430, binding = 4) buffer ssboTransform
-    {
-        vec4 matrices[];
-    };
-
-    layout (std430, binding = 5) buffer ssboVelocity
-    {
-        vec4 velocity[];
-    };
-
-    
-
-    // Varying:
-    out vec4 fragPosition;
-    out vec3 normal;
-    out vec3 c;
-
-    vec3 gravity = vec3(0.0, -9.81, 0.0);
-    
-
-    void main(void)
-    {
-        float mass = velocity[gl_InstanceID].w;
-
-        if(deltaFrameTime > 0.0){
-            // after need to sum forces
-            vec3 f = mass * gravity;
-            vec3 a = f / mass;
-
-            if(matrices[gl_InstanceID].y <= matrices[gl_InstanceID].w){
-                //velocity[gl_InstanceID].y *= -1.0;
-
-                vec3 v0 = vec3(velocity[gl_InstanceID].x, velocity[gl_InstanceID].y, velocity[gl_InstanceID].z);
-                float k = 0.5 * mass * length(v0) * length(v0);
-                k *= 0.8;
-                v0.y = sqrt(k / mass / 0.5);
-                velocity[gl_InstanceID].x = v0.x;
-                velocity[gl_InstanceID].y = v0.y;
-                velocity[gl_InstanceID].z = v0.z;
-            }
-
-            vec3 v = vec3(0.0);
-
-            v += a * deltaFrameTime;
-            velocity[gl_InstanceID].x += v.x;
-            velocity[gl_InstanceID].y += v.y;
-            velocity[gl_InstanceID].z += v.z;
-
-            matrices[gl_InstanceID].x += (velocity[gl_InstanceID].x * deltaFrameTime);
-            matrices[gl_InstanceID].y += (velocity[gl_InstanceID].y * deltaFrameTime);
-            matrices[gl_InstanceID].z += (velocity[gl_InstanceID].z * deltaFrameTime);
-        }
-
-        fragPosition = invCamera * mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
-                                        0.0, matrices[gl_InstanceID].w, 0.0, 0.0,
-                                        0.0, 0.0, matrices[gl_InstanceID].w, 0.0,
-                                        matrices[gl_InstanceID].x, matrices[gl_InstanceID].y, matrices[gl_InstanceID].z, 1.0) * vec4(in_Position, 1.0);
-        normalMatrix = inverse(transpose(mat3(mat4(matrices[gl_InstanceID].w, 0.0, 0.0, 0.0,
-                                        0.0, matrices[gl_InstanceID].w, 0.0, 0.0,
-                                        0.0, 0.0, matrices[gl_InstanceID].w, 0.0,
-                                        matrices[gl_InstanceID].x, matrices[gl_InstanceID].y, matrices[gl_InstanceID].z, 1.0))));
-
-        /*fragPosition = invCamera * mat4(in_Transform.w, 0.0, 0.0, 0.0,
-                                        0.0, in_Transform.w, 0.0, 0.0,
-                                        0.0, 0.0, in_Transform.w, 0.0,
-                                        in_Transform.x, in_Transform.y, in_Transform.z, 1.0) * vec4(in_Position, 1.0);
-        normalMatrix = inverse(transpose(mat3(mat4(in_Transform.w, 0.0, 0.0, 0.0,
-                                        0.0,in_Transform.w, 0.0, 0.0,
-                                        0.0, 0.0, in_Transform.w, 0.0,
-                                        in_Transform.x, in_Transform.y, in_Transform.z, 1.0))));*/
-        
-        gl_Position = projection * fragPosition;
-        normal = normalMatrix * in_Normal;
-        c = normalize(in_Color);
-    }
-)";
-
-////////////////////////////
-// Directional Light
-const char* directLightfragShader = R"(
-   #version 450 core
-
-   in vec4 fragPosition;
-   in vec3 normal;  
-   in vec3 c;
-   
-   out vec4 fragOutput;
-
-   // Material properties:
-   uniform vec3 matEmission;
-   uniform vec3 matAmbient;
-   uniform vec3 matDiffuse;
-   uniform vec3 matSpecular;
-   uniform float matShininess;
-
-   // Light properties:
-   uniform vec3 lightPosition; 
-   uniform vec3 lightAmbient; 
-   uniform vec3 lightDiffuse; 
-   uniform vec3 lightSpecular;
-
-   void main(void)
-   {      
-      // Final color:
-      fragOutput = vec4(c, 1.0f);
-      //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
-   }
-)";
 
 /////////////////////////////
 // BODY OF CLASS cg_engine //
@@ -514,7 +389,7 @@ bool CgEngine::init(int argc, char* argv[])
     //Set context to opengl4
     glutInitContextVersion(4, 5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
-    //glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
+    glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
     // Set some optional flags:
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
@@ -576,11 +451,12 @@ bool CgEngine::init(int argc, char* argv[])
 
     // Compile vertex shader:
     Shader* vs = new Shader("Vertex");
-    vs->loadFromMemory(Shader::TYPE_VERTEX, vertShader);
+    //vs->loadFromMemory(Shader::TYPE_VERTEX, vertShader);
+    vs->loadFromFile(Shader::TYPE_VERTEX, "../engine/shaders/simple.vert");
 
     // Compile fragment shader:
     Shader* fs = new Shader("Fragment");
-    fs->loadFromMemory(Shader::TYPE_FRAGMENT, directLightfragShader);
+    fs->loadFromFile(Shader::TYPE_FRAGMENT, "../engine/shaders/directLight.frag");
 
     // Setup shader program:
     Shader* shader = new Shader("directLight");

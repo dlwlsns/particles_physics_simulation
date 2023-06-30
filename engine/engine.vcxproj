@@ -128,6 +128,10 @@
     <ClInclude Include="sphere.h" />
     <ClInclude Include="spotLight.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\directLight.frag" />
+    <None Include="shaders\simple.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

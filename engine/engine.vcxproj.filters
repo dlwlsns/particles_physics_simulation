@@ -25,6 +25,9 @@
     <Filter Include="Source Files\camera">
       <UniqueIdentifier>{12a0dc4b-5bcd-49c2-90ce-2eb71ae0426d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{cfac2c35-0a3f-455f-85e4-6099381722da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_engine.h">
@@ -125,5 +128,13 @@
     <ClCompile Include="sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\simple.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\directLight.frag">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

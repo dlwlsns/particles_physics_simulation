@@ -83,18 +83,21 @@ int main(int argc, char *argv[])
     Sphere* sphere = new Sphere("sphere", 2);
     
     float scale[5] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
-    int range = 5;
 
     Material* m0 = new Material("m0", glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), 10.0);
 
-    float dist = 2.0f;
+    int maxVelocity = 5;
     srand((unsigned)time(NULL));
-    for (int x = -range/2; x < (range / 2); x++) {
-        for (int z = -range/2; z < (range / 2); z++) {
-            sphere->addTransform(glm::vec4(x * dist, 10.0f, z * dist, scale[rand() % 5]));
-            sphere->addVelocity(glm::vec4(0.0f, 0.0f, 0.0f, (rand() % 20)+1));
-            sphere->colors.push_back(glm::vec3(rand() % 255, rand() % 255, rand() % 255));
-        }
+    for (int x = 0; x < 100; x++) {
+        sphere->addTransform(glm::vec4(0.0f, 5.0f, 0.0f, scale[rand() % 5]));
+        sphere->addVelocity(
+            glm::vec4(
+                rand() % (maxVelocity - (-maxVelocity) + 1) + (-maxVelocity),
+                0.0f,
+                rand() % (maxVelocity - (-maxVelocity) + 1) + (-maxVelocity), (rand() % 20) + 1
+            )
+        );
+        sphere->colors.push_back(glm::vec3(rand() % 255, rand() % 255, rand() % 255));
     }
     sphere->setMaterial(m0);
     scene->addChild(sphere);
