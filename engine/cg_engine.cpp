@@ -50,6 +50,10 @@ int frames = 0;
 // SHADERS //
 /////////////
 ShaderGlobals shaders;
+Shader* cs;
+Shader* light;
+
+GLuint cs_program, cs_shader;
 
 /////////////////////////////
 // BODY OF CLASS cg_engine //
@@ -451,7 +455,6 @@ bool CgEngine::init(int argc, char* argv[])
 
     // Compile vertex shader:
     Shader* vs = new Shader("Vertex");
-    //vs->loadFromMemory(Shader::TYPE_VERTEX, vertShader);
     vs->loadFromFile(Shader::TYPE_VERTEX, "../engine/shaders/simple.vert");
 
     // Compile fragment shader:
@@ -459,14 +462,19 @@ bool CgEngine::init(int argc, char* argv[])
     fs->loadFromFile(Shader::TYPE_FRAGMENT, "../engine/shaders/directLight.frag");
 
     // Setup shader program:
-    Shader* shader = new Shader("directLight");
-    shader->build(vs, fs);
-    shader->use();
-    shader->bind(0, "in_Position");
-    shader->bind(1, "in_Normal");
-    shader->bind(2, "in_Transform");
-    shader->bind(10, "in_Color");
+    light = new Shader("directLight");
+    light->build(vs, fs);
+    light->use();
+    light->bind(0, "in_Position");
+    light->bind(1, "in_Normal");
+    light->bind(2, "in_Color");
+    light->bind(3, "in_Transform");
 
+    cs = new Shader("ComputeShader");
+
+    Shader* cs1 = new Shader("Compute");
+    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
+    cs->build(cs1);
 
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");
@@ -493,7 +501,8 @@ bool CgEngine::init(int argc, char* argv[])
 
     shader->setVec3(lightPositionLoc, glm::vec3(10, 10, 0));*/
 
-    shaders.addShader(shader);
+    shaders.addShader(light);
+    shaders.addShader(cs);
 
     shaders.activateShader(0);
 

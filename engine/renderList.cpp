@@ -56,7 +56,16 @@ void RenderList::sort() {
 
 void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
-	glUniform1fv(shaders.getShaderById(0)->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
+	
+	shaders.activateShader(1);
+	
+	Shader* cs = shaders.getActiveShader();
+	glUniform1fv(cs->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
+	
+	glDispatchCompute(1, 1, 1);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	
+	shaders.activateShader(0);
 
 	for (RenderItem* item : items)
 	{

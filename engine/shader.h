@@ -30,6 +30,7 @@ public:
 		TYPE_VERTEX,
 		TYPE_FRAGMENT,
 		TYPE_PROGRAM,
+		TYPE_COMPUTE,
 		TYPE_LAST
 	};
 
@@ -68,6 +69,7 @@ public:
 	bool loadFromMemory(int kind, const char* data);
 	bool loadFromFile(int kind, const char* filename);
 	bool build(Shader* vertexShader, Shader* fragmentShader);
+	bool build(Shader* coputeShader);
 
 	inline void bind(int location, const char* attribName)
 	{

@@ -90,6 +90,9 @@ bool Shader::loadFromMemory(int type, const char* data)
 	case TYPE_FRAGMENT: //
 		glKind = GL_FRAGMENT_SHADER;
 		break;
+	case TYPE_COMPUTE:
+		glKind = GL_COMPUTE_SHADER;
+		break;
 
 		///////////
 	default: //
@@ -102,6 +105,7 @@ bool Shader::loadFromMemory(int type, const char* data)
 		switch (type)
 		{
 		case TYPE_VERTEX:
+		case TYPE_COMPUTE:
 		case TYPE_FRAGMENT:
 			glDeleteShader(glId);
 			break;
@@ -272,6 +276,69 @@ bool Shader::build(Shader* vertexShader, Shader* fragmentShader)
 	return true;
 }
 
+bool Shader::build(Shader* computeShader)
+{
+	// Safety net:
+	if (computeShader->type != TYPE_COMPUTE)
+	{
+		std::cout << "[ERROR] Invalid compute shader passed" << std::endl;
+
+		return false;
+	}
+
+
+	// Delete if already used:
+	if (glId)
+	{
+		// On reload, make sure it was a program before:
+		if (this->type != TYPE_PROGRAM)
+		{
+			std::cout << "[ERROR] Cannot reload a shader as a program" << std::endl;
+			return false;
+		}
+		glDeleteProgram(glId);
+	}
+
+	// Create program:
+	glId = glCreateProgram();
+	if (glId == 0)
+	{
+		std::cout << "[ERROR] Unable to create program" << std::endl;
+		return false;
+	}
+
+	// Bind vertex shader:
+	if (computeShader)
+		glAttachShader(glId, computeShader->glId);
+
+	// Link program:
+	glLinkProgram(glId);
+	this->type = TYPE_PROGRAM;
+
+	// Verify program:
+	int status;
+	char buffer[MAX_LOGSIZE];
+	int length = 0;
+	memset(buffer, 0, MAX_LOGSIZE);
+
+	glGetProgramiv(glId, GL_LINK_STATUS, &status);
+	glGetProgramInfoLog(glId, MAX_LOGSIZE, &length, buffer);
+	if (status == false)
+	{
+		std::cout << "[ERROR] Program link error: " << buffer << std::endl;
+		return false;
+	}
+	glValidateProgram(glId);
+	glGetProgramiv(glId, GL_VALIDATE_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		std::cout << "[ERROR] Unable to validate program" << std::endl;
+		return false;
+	}
+
+	// Done:
+	return true;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
