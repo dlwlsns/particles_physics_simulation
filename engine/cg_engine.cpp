@@ -42,9 +42,7 @@ bool wireframe = true;
 // FPS:
 int fps = 0;
 int frames = 0;
-
-
-
+float deltaFrameTime = 0;
 
 /////////////
 // SHADERS //
@@ -296,7 +294,16 @@ void displayCallback()
     frames++;
     glutSwapBuffers();
 
-    renderlist->deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
+    // run compute shader
+    shaders.activateShader(1);
+    glUniform1fv(shaders.getActiveShader()->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
+
+    glDispatchCompute(1, 1, 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    shaders.activateShader(0);
+
+    deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);

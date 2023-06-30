@@ -14,8 +14,6 @@
 #include "sphere.h"
 #include "shaderGlobals.h"
 
-auto deltaFrameTime = 0.0f;
-
 RenderItem::RenderItem(Mesh* node) : node(node) {};
 
 RenderList::RenderList(char* name) : Object(name), deltaFrameTime(0.0f) {}
@@ -57,16 +55,6 @@ void RenderList::sort() {
 void RenderList::render(glm::mat4 inverseCamera_M) {
 	glDepthFunc(GL_LESS);
 	
-	shaders.activateShader(1);
-	
-	Shader* cs = shaders.getActiveShader();
-	glUniform1fv(cs->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
-	
-	glDispatchCompute(1, 1, 1);
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	
-	shaders.activateShader(0);
-
 	for (RenderItem* item : items)
 	{
 		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
