@@ -296,12 +296,14 @@ void displayCallback()
 
     // run compute shader
     shaders.activateShader(1);
-    glUniform1fv(shaders.getActiveShader()->getParamLocation("deltaFrameTime"), 1, &deltaFrameTime);
 
-    glDispatchCompute(1, 1, 1);
+    // update delta time
+    GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
+    glUniform1fv(location, 1, &deltaFrameTime);
+
+    // dispatch compute shader
+    glDispatchCompute((GLuint)(renderlist->get(0)->matrices.size()), 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-    shaders.activateShader(0);
 
     deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 

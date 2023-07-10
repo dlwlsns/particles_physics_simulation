@@ -3,10 +3,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
-
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
 
 #include "renderList.h"
 #include "directionalLight.h"
@@ -14,7 +12,7 @@
 #include "sphere.h"
 #include "shaderGlobals.h"
 
-RenderItem::RenderItem(Mesh* node) : node(node) {};
+RenderItem::RenderItem(Mesh* node) : node(node), matrices(node->getMatrices()) {};
 
 RenderList::RenderList(char* name) : Object(name), deltaFrameTime(0.0f) {}
 
@@ -53,6 +51,8 @@ void RenderList::sort() {
 }
 
 void RenderList::render(glm::mat4 inverseCamera_M) {
+	shaders.activateShader(0);
+
 	glDepthFunc(GL_LESS);
 	
 	for (RenderItem* item : items)
@@ -67,14 +67,13 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 			glBindVertexArray(vao);
 			//mesh->pingPongBufferSwap();
 
-			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->node->getMatrices().size());
+			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->matrices.size());
 			
 		}
 		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
 			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));
 			light->render();
 		}
-		
 	}
 
 	glBindVertexArray(0);

@@ -11,16 +11,11 @@ layout(location = 1) in vec3 in_Normal;
 layout(location = 2) in vec3 in_Color;
 layout(location = 3) in vec4 in_Transform;
 
-
 layout (std430, binding = 4) buffer ssboTransform
 {
     vec4 matrices[];
 };
 
-layout (std430, binding = 5) buffer ssboVelocity
-{
-    vec4 velocity[];
-};
 
 // Varying:
 out vec4 fragPosition;
@@ -40,5 +35,7 @@ void main(void)
         
     gl_Position = projection * fragPosition;
     normal = normalMatrix * in_Normal;
+
+
     color = normalize(in_Color);
 }

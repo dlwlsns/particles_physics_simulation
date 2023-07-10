@@ -19,77 +19,112 @@ vec3 gravity = vec3(0.0, -9.81, 0.0);
     
 float border = 5.0;
 
-vec3 normals[] = {vec3(0.0, 1.0, 0.0),
-                    vec3(1.0, 0.0, 0.0),
-                    vec3(-1.0, 0.0, 0.0),
-                    vec3(0.0, 0.0, 1.0),
-                    vec3(0.0, 0.0, -1.0)};
+vec3 normals[] = {
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(-1.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 0.0, -1.0)
+};
 
-vec3 planeBounce(vec3 velocity, vec3 normal, float mass){
-    vec3 v0 = vec3(velocity.x, velocity.y, velocity.z);
-                
+mat4 calculateReflectionMatrix(vec3 normal)
+{
+    vec3 n = normalize(normal);
+
+    return mat4(
+        1.0 - 2.0 * n.x * n.x, -2.0 * n.x * n.y, -2.0 * n.x * n.z, 0.0,
+        -2.0 * n.y * n.x, 1.0 - 2.0 * n.y * n.y, -2.0 * n.y * n.z, 0.0,
+        -2.0 * n.z * n.x, -2.0 * n.z * n.y, 1.0 - 2.0 * n.z * n.z, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+}
+
+vec3 planeBounce(int i, vec3 normal){
+    vec3 v0 = vec3(velocity[i].x, velocity[i].y, velocity[i].z);
+    float mass = velocity[i].w;
+
     // calculate direction of velocity vector
-    vec3 v1 = v0 - 2 * (dot(v0, normal) * normal);
-    v1 = normalize(v1);
+    vec3 v1 = v0 - (2 * (dot(v0, normal) * normal));
+
+    // calculate energy loss
+    float l = length(v1);
+    float k = 0.5 * mass * l * l;
+    k *= 0.8;
 
     // calculate new velocity (lenght)
-    float k = 0.5 * mass * length(v0) * length(v0);
-    k *= 0.8;
-    v1 = v1 * sqrt(k / mass / 0.5);
+    v1 = normalize(v1);
+    v1 *= sqrt((k * 2) / mass);
 
-    // update velocity
+    //truncate if speed is less than 1 mm/s
+    if (length(v1) <= 0.001) v1 = vec3(0.0);
+
     return v1;
 }
 
+
+
 void main(void)
 {
-    if(deltaFrameTime > 0.0){
-        for(int i = 0; i < 1000; i++){
-            float mass = velocity[i].w;
+    uint index = gl_WorkGroupID.x;
+    int i = int(index);
 
-            float bounding[] = {matrices[i].w,
-                    matrices[i].w - border,
-                    matrices[i].w + border,
-                    matrices[i].w - border,
-                    matrices[i].w + border};
+    if (deltaFrameTime > 0.0){
+        float mass = velocity[i].w;
 
-            // check if ball collide with plane
-            if (matrices[i].y <= bounding[0]){
-                velocity[i].xyz = planeBounce(vec3(velocity[i].xyz), normals[0], mass).xyz;
+        float bounding[] = {
+            matrices[i].w,
+            matrices[i].w - border,
+            matrices[i].w + border,
+            matrices[i].w - border,
+            matrices[i].w + border
+        };
+
+        // after need to sum forces
+        vec3 f = mass * gravity;
+        vec3 a = f / mass;
+
+        vec3 v = vec3(0.0);
+        v += a * deltaFrameTime;
+
+        velocity[i].xyz += v.xyz;
+        vec3 pos = matrices[i].xyz + (velocity[i].xyz * deltaFrameTime);
+
+        bool check = false;
+        // check if ball collide with plane
+        //TODO: if bouncing move ball to position where hit wall
+        if (pos.y <= bounding[0])
+            {
+                velocity[i].xyz = planeBounce(i, normals[0]).xyz;
+                check = true;
             }
 
-            if(matrices[i].x <= bounding[1]){
-                velocity[i].xyz = planeBounce(vec3(velocity[i].xyz), normals[1], mass).xyz;
+            if (pos.x <= bounding[1])
+            {
+                velocity[i].xyz = planeBounce(i, normals[1]).xyz;
+                check = true;
             }
 
-            if(matrices[i].x >= bounding[2]){
-                velocity[i].xyz = planeBounce(vec3(velocity[i].xyz), normals[2], mass).xyz;
+            if (pos.x >= bounding[2])
+            {
+                velocity[i].xyz = planeBounce(i, normals[2]).xyz;
+                check = true;
             }
 
-            if(matrices[i].z <= bounding[3]){
-                velocity[i].xyz = planeBounce(vec3(velocity[i].xyz), normals[3], mass).xyz;
+            if (pos.z <= bounding[3])
+            {
+                velocity[i].xyz = planeBounce(i, normals[3]).xyz;
+                check = true;
             }
 
-            if(matrices[i].z >= bounding[4]){
-                velocity[i].xyz = planeBounce(vec3(velocity[i].xyz), normals[4], mass).xyz;
+            if (pos.z >= bounding[4])
+            {
+                velocity[i].xyz = planeBounce(i, normals[4]).xyz;
+                check = true;
             }
 
-            // after need to sum forces
-            vec3 f = mass * gravity;
-            vec3 a = f / mass;
-
-            vec3 v = vec3(0.0);
-            v += a * deltaFrameTime;
-
-            velocity[i].x += v.x;
-            velocity[i].y += v.y;
-            velocity[i].z += v.z;
-
-            // update position
-            matrices[i].x += (velocity[i].x * deltaFrameTime);
-            matrices[i].y += (velocity[i].y * deltaFrameTime);
-            matrices[i].z += (velocity[i].z * deltaFrameTime);
-        }
+        if (check) 
+            matrices[i].xyz = pos.xyz + (velocity[i].xyz * deltaFrameTime);
+        else
+            matrices[i].xyz = pos.xyz;
     }
-
 }

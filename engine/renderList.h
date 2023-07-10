@@ -7,7 +7,7 @@
 
 struct RenderItem {
 	Mesh* node;
-	std::vector<glm::mat4> matrices;
+	std::vector<glm::vec4> matrices;
 
 	RenderItem(Mesh* node);
 };

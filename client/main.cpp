@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
     int maxVelocity = 5;
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 1000; x++) {
+    for (int x = 0; x < 100; x++) {
         sphere->addTransform(glm::vec4(0.0f, 5.0f, 0.0f, scale[rand() % 5]));
         sphere->addVelocity(
             glm::vec4(
