@@ -5,6 +5,12 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 // Uniforms:
 uniform float deltaFrameTime;
 
+
+layout(std430, binding = 3) buffer vboTransform
+{
+    vec4 matrices_old[];
+};
+
 layout (std430, binding = 4) buffer ssboTransform
 {
     vec4 matrices[];
@@ -65,18 +71,17 @@ vec3 planeBounce(int i, vec3 normal){
 
 void main(void)
 {
-    uint index = gl_WorkGroupID.x;
-    int i = int(index);
+    int i = int(gl_WorkGroupID.x);
 
     if (deltaFrameTime > 0.0){
         float mass = velocity[i].w;
 
         float bounding[] = {
-            matrices[i].w,
-            matrices[i].w - border,
-            matrices[i].w + border,
-            matrices[i].w - border,
-            matrices[i].w + border
+            matrices_old[i].w,
+            matrices_old[i].w - border,
+            matrices_old[i].w + border,
+            matrices_old[i].w - border,
+            matrices_old[i].w + border
         };
 
         // after need to sum forces
@@ -87,7 +92,7 @@ void main(void)
         v += a * deltaFrameTime;
 
         velocity[i].xyz += v.xyz;
-        vec3 pos = matrices[i].xyz + (velocity[i].xyz * deltaFrameTime);
+        vec3 pos = matrices_old[i].xyz + (velocity[i].xyz * deltaFrameTime);
 
         bool check = false;
         // check if ball collide with plane

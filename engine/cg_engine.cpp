@@ -445,8 +445,8 @@ bool CgEngine::init(int argc, char* argv[])
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     // Set lighting options
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
     glEnable(GL_CULL_FACE);
     //glEnable(GL_NORMALIZE);
 
@@ -483,7 +483,9 @@ bool CgEngine::init(int argc, char* argv[])
 
     Shader* cs1 = new Shader("Compute");
     cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
+    
     cs->build(cs1);
+    cs->bind(4, "ssboTransform");
 
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");

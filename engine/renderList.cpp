@@ -65,10 +65,10 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 			int facesCount = item->node->getFaces().size();
 
 			glBindVertexArray(vao);
-			//mesh->pingPongBufferSwap();
+
+			mesh->pingPongBufferSwap();
 
 			glDrawElementsInstanced(GL_TRIANGLES, facesCount, GL_UNSIGNED_INT, nullptr, item->matrices.size());
-			
 		}
 		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
 			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));
