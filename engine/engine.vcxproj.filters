@@ -25,6 +25,9 @@
     <Filter Include="Source Files\camera">
       <UniqueIdentifier>{12a0dc4b-5bcd-49c2-90ce-2eb71ae0426d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{cfac2c35-0a3f-455f-85e4-6099381722da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cg_engine.h">
@@ -43,9 +46,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sceneReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="light.h">
@@ -75,6 +75,9 @@
     <ClInclude Include="shaderGlobals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cg_engine.cpp">
@@ -93,9 +96,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sceneReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="light.cpp">
@@ -125,5 +125,19 @@
     <ClCompile Include="shaderGlobals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\simple.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\directLight.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\simple.cs">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

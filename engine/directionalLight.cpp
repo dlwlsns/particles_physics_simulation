@@ -15,7 +15,7 @@ DirectionalLight::~DirectionalLight() {
 	std::cout << "Deleted directional light" << std::endl;
 }
 
-void DirectionalLight::render(glm::mat4 inverseCamera) {
+void DirectionalLight::render() {
 	shaders.activateShader(0);
-	Light::render(inverseCamera);
+	Light::render();
 };

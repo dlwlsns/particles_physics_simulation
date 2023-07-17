@@ -25,6 +25,7 @@
 #include "object.h"
 #include "node.h"
 #include "mesh.h"
+#include "sphere.h"
 #include "perspectiveCamera.h"
 #include "orthographicCamera.h"
 #include "pointLight.h"

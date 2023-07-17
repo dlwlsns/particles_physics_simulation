@@ -6,20 +6,33 @@ class LIB_API Mesh : public Node
 {
 	private:
 		unsigned int vaoGlobal;
+
 		unsigned int vboVertex;
 		unsigned int vboNormals;
-		unsigned int vboTex;
 		unsigned int vboFace;
+
+		unsigned int vboColor;
+		unsigned int vboTransform;
+		unsigned int ssboTransform;
+		unsigned int ssboVelocity;
+		unsigned int ssboForce;
+
 		std::vector<glm::vec3> verticies;
 		std::vector<glm::vec3> normals;
-		std::vector<glm::vec2> texCoords;
 		std::vector<unsigned int> faces;
+		std::vector<glm::vec4> velocities;
+		std::vector<glm::vec4> forces;
+
+		std::vector<glm::vec4> matrices;
+		std::vector<glm::vec4> pingPongMatrices;
+
 		Material* material;
 		bool isVaoInit;
 
 		float boundingSphereRadius;
 		bool boundingSphere;
 	public:
+		std::vector<glm::vec3> colors;
 		Mesh(char* name);
 		virtual ~Mesh();
 
@@ -31,18 +44,22 @@ class LIB_API Mesh : public Node
 		void addNormal(glm::vec3 normal);
 		void addFace(unsigned int face[3]);
 		std::vector<unsigned int> getFaces();
-		void addTexCoords(glm::vec2 texCoords);
 		void setBoundingSphereRadius(float radius);
 		float getBoundingSphereRadius();
 		void toggleBoundingSphere();
 		bool isBoundingSphereEnabled();
 
-		void initVAO();
+		void addTransform(glm::vec4 matrix);
+		std::vector<glm::vec4> getMatrices();
+		void addVelocity(glm::vec4 matrix);
+		std::vector<glm::vec4> getVelocities();
+		void addForce(glm::vec4 matrix);
+		std::vector<glm::vec4> getForces();
 
-		void enableShadow(bool hasShadow);
-		bool hasShadow();
+		void initVAO();
+		unsigned int getVAO();
+		void pingPongBufferSwap();
 
 		virtual void render(glm::mat4 inverseCamera_M);
-		void renderShadow(glm::mat4 inverseCamera_M);
 };
 

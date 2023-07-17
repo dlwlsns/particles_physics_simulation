@@ -7,6 +7,7 @@
 // C/C++:
 #include <iostream>
 #include <vector>
+#include <chrono>
 // Glew (include it before GL.h):
 #include <GL/glew.h>
 
@@ -15,7 +16,6 @@
 
 // Engine
 #include "cg_engine.h"
-#include "sceneReader.h"
 #include "spotLight.h"
 #include "renderList.h"
 #include "shaderGlobals.h"
@@ -42,146 +42,16 @@ bool wireframe = true;
 // FPS:
 int fps = 0;
 int frames = 0;
-
-
-
+float deltaFrameTime = 0;
 
 /////////////
 // SHADERS //
 /////////////
 ShaderGlobals shaders;
-////////////////////////////
-const char* vertShader = R"(
-   #version 450 core
+Shader* cs;
+Shader* light;
 
-   // Uniforms:
-   uniform mat4 projection;
-   uniform mat4 modelview;
-   uniform mat3 normalMatrix;
-
-   // Attributes:
-   layout(location = 0) in vec3 in_Position;
-   layout(location = 1) in vec3 in_Normal;
-   //layout(location = 2) in vec2 in_TexCoord;
-
-   // Varying:
-   out vec4 fragPosition;
-   out vec3 normal;   
-
-   void main(void)
-   {
-      //texCoord = in_TexCoord;
-      fragPosition = modelview * vec4(in_Position, 1.0f);
-      gl_Position = projection * fragPosition;      
-      normal = normalMatrix * in_Normal;
-   }
-)";
-
-////////////////////////////
-// Directional Light
-const char* directLightfragShader = R"(
-   #version 450 core
-
-   in vec4 fragPosition;
-   in vec3 normal;   
-   
-   out vec4 fragOutput;
-
-   // Material properties:
-   uniform vec3 matEmission;
-   uniform vec3 matAmbient;
-   uniform vec3 matDiffuse;
-   uniform vec3 matSpecular;
-   uniform float matShininess;
-
-   // Light properties:
-   uniform vec3 lightPosition; 
-   uniform vec3 lightAmbient; 
-   uniform vec3 lightDiffuse; 
-   uniform vec3 lightSpecular;
-
-   void main(void)
-   {      
-      // Ambient term:
-      vec3 fragColor = matEmission + matAmbient * lightAmbient;
-
-      // Diffuse term:
-      vec3 _normal = normalize(normal);
-      vec3 lightDirection = normalize(lightPosition - fragPosition.xyz);      
-      float nDotL = dot(lightDirection, _normal);   
-      if (nDotL >= 0.0f)
-      {
-         fragColor += matDiffuse * nDotL * lightDiffuse;
-      
-         // Specular term:
-         vec3 halfVector = normalize(lightDirection + normalize(-fragPosition.xyz));                     
-         float nDotHV = dot(_normal, halfVector);         
-         fragColor += matSpecular * pow(nDotHV, matShininess) * lightSpecular;
-      } 
-      
-      // Final color:
-      fragOutput = vec4(fragColor, 1.0f);
-      //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
-   }
-)";
-
-
-//TODO fix spotlightshader and introduce pointlight shader
-// the problem in the spotlight is the apotlightAttenuation variable that breaks everything, we may need to rewrite the math
-
-////////////////////////////
-// Spot Light
-const char* spotlightFragShader = R"(
-    #version 450 core
-
-    in vec4 fragPosition;
-    in vec3 normal;   
-   
-    out vec4 fragOutput;
-
-    // Material properties:
-    uniform vec3 matEmission;
-    uniform vec3 matAmbient;
-    uniform vec3 matDiffuse;
-    uniform vec3 matSpecular;
-    uniform float matShininess;
-
-    // Light properties:
-    uniform vec3 lightPosition; 
-    uniform vec3 lightAmbient; 
-    uniform vec3 lightDiffuse; 
-    uniform vec3 lightSpecular;
-
-    uniform vec3 lightDirection; // spotlight direction
-    uniform float lightConeAngle; // spotlight cone angle
-
-    void main(void)
-    {      
-        // Ambient term:
-        vec3 fragColor = matEmission + matAmbient * lightAmbient;
-
-        // Diffuse term:
-        vec3 _normal = normalize(normal);
-        vec3 lightToFragment = normalize(fragPosition.xyz - lightPosition);
-        float nDotL = dot(lightToFragment, _normal);   
-        if (nDotL >= 0.0f)
-        {
-            // Spotlight attenuation:
-            float spotlightAngleCos = dot(-lightToFragment, lightDirection);
-            float spotlightAttenuation = smoothstep(lightConeAngle, lightConeAngle * 0.75, spotlightAngleCos);
-
-            fragColor += matDiffuse * nDotL * lightDiffuse;// * spotlightAttenuation;
-
-            // Specular term:
-            vec3 halfVector = normalize(lightToFragment + normalize(-fragPosition.xyz));                     
-            float nDotHV = dot(_normal, halfVector);         
-            fragColor += matSpecular * pow(nDotHV, matShininess) * lightSpecular; //* spotlightAttenuation;
-        } 
-      
-        // Final color:
-        fragOutput = vec4(fragColor, 1.0f);
-    }
-)";
+GLuint cs_program, cs_shader;
 
 /////////////////////////////
 // BODY OF CLASS cg_engine //
@@ -210,6 +80,8 @@ void CgEngine::cameraRotation() {
 
     Shader* current_shader = shaders.getShaderById(0);
     current_shader->setMatrix(current_shader->getParamLocation("projection"), cameras[activeCam]->getProjection());
+
+    glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
 
     glutPostWindowRedisplay(windowId);
 }
@@ -261,52 +133,6 @@ void CgEngine::addGuiText(char* text) {
 }
 
 /**
- * This function allows the client to load a scene.
- *
- * @param filePath path of the file where to load the scene from
- */
-Node* CgEngine::load(char* filePath) {
-    // Open file:
-    FILE* dat = fopen(filePath, "rb");
-    if (dat == nullptr)
-    {
-        std::cout << "ERROR: unable to open file" << std::endl;
-        return nullptr;
-    }
-
-    Node* root = nullptr;
-
-    // Parse chuncks:	
-    Object* obj;
-    int count = 0;
-
-    SceneReader* reader = new SceneReader();
-    reader->file = dat;
-    reader->materials = materials;
-    do
-    {
-        obj = (Object*)reader->typeSelect(dat, materials);
-
-        if (dynamic_cast<const Material*>(obj) != nullptr) {
-            Material* m = dynamic_cast<Material*>(obj);
-            materials.push_back(m);
-            reader->materials = materials;
-        }
-        else if (dynamic_cast<const Node*>(obj) != nullptr) {
-            Node* node = dynamic_cast<Node*>(obj);
-            if (root == nullptr)
-                root = node;
-        }
-
-        count++;
-    } while (obj != nullptr || count == 1);
-
-    fclose(dat);
-
-    return root;
-}
-
-/**
  * This function add the node and all his children to the RenderList.
  *
  * @param node node to add
@@ -323,20 +149,24 @@ void CgEngine::parse(Node* scene) {
 
     if (dynamic_cast<const Camera*>(scene) != nullptr) {
         cameras.push_back(dynamic_cast<Camera*>(scene));
-    }
-    else {
-        if (dynamic_cast<const Mesh*>(scene) != nullptr) {
-            (dynamic_cast<Mesh*>(scene))->initVAO();
-        }
 
-        renderlist->addItem(RenderItem(scene, scene->getWorldCoordinates()));
+        //TODO: find a place to set first camera
+        Shader* current_shader = shaders.getShaderById(0);
+        glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
+    }
+    else if(dynamic_cast<const Sphere*>(scene) != nullptr) {
+        //TODO: find a better way to add a new mesh type
+        Sphere* s = dynamic_cast<Sphere*>(scene);
+        
+        renderlist->addItem(new RenderItem(s));
     }
 
     for (int i = 0; i < scene->getChildrenCount(); i++) {
         parse(scene->getChild(i));
     }
 
-    renderlist->sort();
+    
+    //renderlist->sort();
 }
 
 /**
@@ -439,7 +269,7 @@ void timerCallback(int value)
     // Update values:
     fps = frames;
     frames = 0;
-    std::cout << fps << std::endl;
+    glutSetWindowTitle(("Particles Physics Simulation - " + std::to_string(fps) + " FPS").c_str());
 
     // Register the next update:
     glutTimerFunc(1000, timerCallback, 0);
@@ -450,19 +280,32 @@ void timerCallback(int value)
  */
 void displayCallback()
 {
+    auto t_start = std::chrono::high_resolution_clock::now();
+
     // Clear the screen:         
     glClearColor(0.0f, 0.5f, 1.0f, 1.0f); // RGBA components
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearDepth(1.0f);
 
     // Render Nodes
-    renderlist->empty();
-    CgEngine::getIstance()->parse(currentScene);
     renderlist->render(cameras[activeCam]->getInverse());
 
     // Swap this context's buffer:  
     frames++;
     glutSwapBuffers();
+
+    // run compute shader
+    shaders.activateShader(1);
+
+    // update delta time
+    GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
+    glUniform1fv(location, 1, &deltaFrameTime);
+
+    // dispatch compute shader
+    glDispatchCompute((GLuint)(renderlist->get(0)->matrices.size()), 1, 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
     // Force rendering refresh:
     glutPostWindowRedisplay(windowId);
@@ -557,7 +400,7 @@ bool CgEngine::init(int argc, char* argv[])
     glutTimerFunc(1000, timerCallback, 0);
 
     //Set context to opengl4
-    glutInitContextVersion(4, 4);
+    glutInitContextVersion(4, 5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
@@ -565,7 +408,7 @@ bool CgEngine::init(int argc, char* argv[])
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
     // Create the window with a specific title:   
-    windowId = glutCreateWindow("CG - The Crane");
+    windowId = glutCreateWindow("Particles Physics Simulation");
 
     // Init Glew (*after* the context creation):
     glewExperimental = GL_TRUE;
@@ -603,6 +446,7 @@ bool CgEngine::init(int argc, char* argv[])
 
     // Set lighting options
     //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
     glEnable(GL_CULL_FACE);
     //glEnable(GL_NORMALIZE);
 
@@ -620,31 +464,28 @@ bool CgEngine::init(int argc, char* argv[])
 
     // Compile vertex shader:
     Shader* vs = new Shader("Vertex");
-    vs->loadFromMemory(Shader::TYPE_VERTEX, vertShader);
+    vs->loadFromFile(Shader::TYPE_VERTEX, "../engine/shaders/simple.vert");
 
     // Compile fragment shader:
     Shader* fs = new Shader("Fragment");
-    fs->loadFromMemory(Shader::TYPE_FRAGMENT, directLightfragShader);
-
-    // Compile fragment shader:
-    Shader* fs2 = new Shader("spotlight");
-    fs2->loadFromMemory(Shader::TYPE_FRAGMENT, spotlightFragShader);
+    fs->loadFromFile(Shader::TYPE_FRAGMENT, "../engine/shaders/directLight.frag");
 
     // Setup shader program:
-    Shader* shader = new Shader("directLight");
-    shader->build(vs, fs);
-    shader->use();
-    shader->bind(0, "in_Position");
-    shader->bind(1, "in_Normal");
+    light = new Shader("directLight");
+    light->build(vs, fs);
+    light->use();
+    light->bind(0, "in_Position");
+    light->bind(1, "in_Normal");
+    light->bind(2, "in_Color");
+    light->bind(3, "in_Transform");
 
-    Shader* shader2 = new Shader("spotlight");
-    shader2->build(vs, fs2);
-    shader2->use();
-    shader2->bind(0, "in_Position");
-    shader2->bind(1, "in_Normal");
+    cs = new Shader("ComputeShader");
 
+    Shader* cs1 = new Shader("Compute");
+    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
     
-
+    cs->build(cs1);
+    cs->bind(4, "ssboTransform");
 
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");
@@ -671,13 +512,12 @@ bool CgEngine::init(int argc, char* argv[])
 
     shader->setVec3(lightPositionLoc, glm::vec3(10, 10, 0));*/
 
-    shaders.addShader(shader);
-    shaders.addShader(shader2);
+    shaders.addShader(light);
+    shaders.addShader(cs);
 
     shaders.activateShader(0);
 
     renderlist = new RenderList("renderlist");
-
 
     // Add an Orthographic Camera for the GUI
     Camera* gui = new OrthographicCamera("GUI", -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);

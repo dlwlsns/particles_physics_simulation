@@ -46,6 +46,6 @@ void SpotLight::render(glm::mat4 inverseCamera) {
 	current_shader->setVec3(lightDirection, getDirection());
 	current_shader->setFloat(lightConeAngle, getCutoff());
 	*/
-	Light::render(inverseCamera);
+	Light::render();
 	//glLightfv(this->getLightId(), GL_SPOT_DIRECTION, glm::value_ptr(this->getDirection()));
 };

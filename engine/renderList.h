@@ -1,29 +1,31 @@
 #pragma once
-#include "node.h"
+#include "mesh.h"
 #include "shaderGlobals.h"
 #include <vector>
 #include <typeinfo>
 
 
 struct RenderItem {
-	Object* object;
-	glm::mat4 matrix;
+	Mesh* node;
+	std::vector<glm::vec4> matrices;
 
-	RenderItem(Object* object, glm::mat4 matrix);
+	RenderItem(Mesh* node);
 };
 
 class RenderList : public Object
 {
 	private:
-		std::vector<RenderItem> items;
+		std::vector<RenderItem*> items;
 	public:
+		float deltaFrameTime;
+
 		RenderList(char* name);
 		virtual ~RenderList();
 
-		void addItem(RenderItem item);
+		void addItem(RenderItem* item);
 		void removeitem(unsigned int id);
-		RenderItem get(int index);
-		void set(int index, RenderItem item);
+		RenderItem* get(int index);
+		void set(int index, RenderItem* item);
 		void empty();
 		int size();
 		void sort();
