@@ -74,6 +74,14 @@ std::vector<glm::vec4> Mesh::getVelocities() {
     return this->velocities;
 }
 
+void Mesh::addForce(glm::vec4 matrix) {
+    this->forces.push_back(matrix);
+}
+
+std::vector<glm::vec4> Mesh::getForces() {
+    return this->forces;
+}
+
 #include <glm/gtx/string_cast.hpp>
 void Mesh::initVAO()
 {
@@ -124,6 +132,11 @@ void Mesh::initVAO()
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
         glBufferData(GL_SHADER_STORAGE_BUFFER, velocities.size() * sizeof(glm::vec4), &velocities[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ssboVelocity);
+
+        glGenBuffers(1, &ssboForce);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboForce);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, forces.size() * sizeof(glm::vec4), &forces[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssboForce);
 
         glBindVertexArray(0);
 

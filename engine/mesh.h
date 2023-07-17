@@ -6,20 +6,22 @@ class LIB_API Mesh : public Node
 {
 	private:
 		unsigned int vaoGlobal;
+
 		unsigned int vboVertex;
 		unsigned int vboNormals;
 		unsigned int vboFace;
+
 		unsigned int vboColor;
 		unsigned int vboTransform;
 		unsigned int ssboTransform;
 		unsigned int ssboVelocity;
-		unsigned int ssboAcceleration;
+		unsigned int ssboForce;
 
 		std::vector<glm::vec3> verticies;
 		std::vector<glm::vec3> normals;
 		std::vector<unsigned int> faces;
 		std::vector<glm::vec4> velocities;
-		
+		std::vector<glm::vec4> forces;
 
 		std::vector<glm::vec4> matrices;
 		std::vector<glm::vec4> pingPongMatrices;
@@ -51,6 +53,8 @@ class LIB_API Mesh : public Node
 		std::vector<glm::vec4> getMatrices();
 		void addVelocity(glm::vec4 matrix);
 		std::vector<glm::vec4> getVelocities();
+		void addForce(glm::vec4 matrix);
+		std::vector<glm::vec4> getForces();
 
 		void initVAO();
 		unsigned int getVAO();
