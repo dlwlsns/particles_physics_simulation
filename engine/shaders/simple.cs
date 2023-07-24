@@ -59,45 +59,40 @@ void main(void)
     // ID of the ball is equal to the shader instance's ID
     int i = int(gl_WorkGroupID.x);
 
-    if(i == 0)
-    {
-        for(int j = 0; j < 500; j++)
+    if (deltaFrameTime > 0.0){
+        if (i == 0)
         {
-            for (int b = 0; b < 500; b++)
+            for (int j = 0; j < 500; j++)
             {
-                if (b != j)
+                for (int b = 0; b < 500; b++)
                 {
-                    if (length(matrices_old[b].xyz - matrices_old[j].xyz) <= (matrices_old[j].w + matrices_old[b].w))
+                    if (b != j)
                     {
-                        //https://physics.stackexchange.com/questions/681396/elastic-collision-3d-eqaution
+                        if (length(matrices_old[b].xyz - matrices_old[j].xyz) <= (matrices_old[j].w + matrices_old[b].w))
+                        {
+                            //https://physics.stackexchange.com/questions/681396/elastic-collision-3d-eqaution
 
-                        vec3 v1 = velocity[j].xyz * velocity[j].w;
-                        vec3 v2 = velocity[b].xyz * velocity[b].w;
-                        vec3 x1 = matrices_old[j].xyz;
-                        vec3 x2 = matrices_old[b].xyz;
-                        float m1 = force[j].w;
-                        float m2 = force[b].w;
+                            vec3 v1 = velocity[j].xyz * velocity[j].w;
+                            vec3 v2 = velocity[b].xyz * velocity[b].w;
+                            vec3 x1 = matrices_old[j].xyz;
+                            vec3 x2 = matrices_old[b].xyz;
+                            float m1 = force[j].w;
+                            float m2 = force[b].w;
 
+                            v1 -= ((2 * m2) / (m1 + m2)) * dot((v1 - v2), normalize(x1 - x2)) * (x1 - x2);
+                            v2 -= ((2 * m1) / (m1 + m2)) * dot((v2 - v1), normalize(x2 - x1)) * (x2 - x1);
 
-                        vec3 n = (x2 - x1) / length(x2 - x1);
-                        float m_eff = 1 / ((1 / m1) + (1 / m2));
-                        float v_imp = dot(n, (v1 - v2));
-                        float ja = (1.0 + 0.1) * m_eff * v_imp;
-                        v1 += (-1) * (ja / m1) * n;
-                        v2 += (ja / m2) * n;
-
-                        velocity[j].xyz = normalize(v1);
-                        velocity[j].w = length(v1);
-                        velocity[b].xyz = normalize(v2);
-                        velocity[b].w = length(v2);
+                            velocity[j].xyz = normalize(v1);
+                            velocity[j].w = length(v1);
+                            velocity[b].xyz = normalize(v2);
+                            velocity[b].w = length(v2);
+                        }
                     }
                 }
             }
         }
-    }
 
-    if (deltaFrameTime > 0.0){
-        if(velocity[i].w > 0.0)
+        if (velocity[i].w > 0.0)
         {
             float mass = force[i].w;
 
