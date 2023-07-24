@@ -70,7 +70,7 @@ void main(void)
                     {
                         if (length(matrices_old[b].xyz - matrices_old[j].xyz) <= (matrices_old[j].w + matrices_old[b].w))
                         {
-                            //https://physics.stackexchange.com/questions/681396/elastic-collision-3d-eqaution
+                            //https://en.wikipedia.org/wiki/Elastic_collision
 
                             vec3 v1 = velocity[j].xyz * velocity[j].w;
                             vec3 v2 = velocity[b].xyz * velocity[b].w;
