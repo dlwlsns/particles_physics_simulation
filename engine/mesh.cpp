@@ -82,7 +82,14 @@ std::vector<glm::vec4> Mesh::getForces() {
     return this->forces;
 }
 
-#include <glm/gtx/string_cast.hpp>
+void Mesh::addColor(glm::vec4 color) {
+    this->colors.push_back(color);
+}
+
+std::vector<glm::vec4> Mesh::getColors() {
+    return this->colors;
+}
+
 void Mesh::initVAO()
 {
     if (!isVaoInit) {
@@ -111,12 +118,15 @@ void Mesh::initVAO()
 
         // Dynamic mesh data
 
-        glGenBuffers(1, &vboColor);
+        /*glGenBuffers(1, &vboColor);
         glBindBuffer(GL_ARRAY_BUFFER, vboColor);
         glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), &colors[0], GL_STATIC_DRAW);
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(2);
-        glVertexAttribDivisor(2, 1);
+        glVertexAttribDivisor(2, 1);*/
+
+        
+
 
         glGenBuffers(1, &vboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, vboTransform);
@@ -138,9 +148,14 @@ void Mesh::initVAO()
         glBufferData(GL_SHADER_STORAGE_BUFFER, forces.size() * sizeof(glm::vec4), &forces[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssboForce);
 
+        glGenBuffers(1, &vboColor);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, vboColor);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, vboColor);
+
         glBindVertexArray(0);
 
-        std::cout << "Verticies: " << N << " - Faces: " << faces.size()/3 << " - Normals: " << normals.size() << std::endl;
+        std::cout << "Verticies: " << N << " - Faces: " << faces.size()/3 << " - Normals: " << normals.size() << " Matrices: " << matrices.size() << " Colors: " << colors.size() << std::endl;
 
         isVaoInit = true;
     }
@@ -155,7 +170,6 @@ void Mesh::render(glm::mat4 inverseCamera) {
         this->getMaterial()->render(inverseCamera);
 }
 
-#include "shaderGlobals.h"
 bool check = false;
 void Mesh::pingPongBufferSwap() {
 

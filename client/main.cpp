@@ -89,18 +89,34 @@ int main(int argc, char *argv[])
     int maxVelocity = 5;
     srand((unsigned)time(NULL));
     for (int x = 0; x < 100; x++) {
-        sphere->addTransform(glm::vec4(0.0f, 5.0f, 0.0f, scale[rand() % 5]));
-        sphere->addVelocity(
+        sphere->addTransform(
             glm::vec4(
-                (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
-                (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
-                (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
-                static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 10.0f))
+                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))),
+                9.0f, 
+                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))),
+                scale[3]
             )
         );
+        sphere->addVelocity(
+            glm::vec4(
+                0.0f,
+                -1.0f,
+                0.0f,
+                1.0f
+            )
+        );
+
         sphere->addForce(glm::vec4(0.0f, 0.0f, 0.0f, (rand() % 20) + 1));
-        sphere->colors.push_back(glm::vec3(rand() % 255, rand() % 255, rand() % 255));
+        sphere->addColor(
+            glm::vec4(
+                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
+                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
+                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
+                1.0f
+            )
+        );
     }
+
     sphere->setMaterial(m0);
     scene->addChild(sphere);
 

@@ -5,7 +5,6 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 // Uniforms:
 uniform float deltaFrameTime;
 
-
 layout(std430, binding = 3) buffer vboTransform
 {
     vec4 matrices_old[];
@@ -24,6 +23,11 @@ layout (std430, binding = 5) buffer ssboVelocity
 layout(std430, binding = 6) buffer ssboForce
 {
     vec4 force[];
+};
+
+layout(std430, binding = 7) buffer vboColor
+{
+    vec4 color[];
 };
 
 vec3 gravity = vec3(0.0, -9.81, 0.0);
@@ -59,7 +63,7 @@ void planeBounce(int i, vec3 normal){
     // calculate energy loss and new velocity length
     float l = velocity[i].w;
     float k = 0.5 * mass * l * l;
-    k *= 0.9;
+    k *= 1.0;
 
     velocity[i].w = sqrt((k * 2) / mass);
 
@@ -75,7 +79,7 @@ void main(void)
     int i = int(gl_WorkGroupID.x);
 
     if (deltaFrameTime > 0.0){
-        if(velocity[i].w > 0.001)
+        if(velocity[i].w > 0.0)
         {
             float mass = force[i].w;
 
@@ -138,6 +142,31 @@ void main(void)
                 matrices[i].xyz = pos.xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
             else
                 matrices[i].xyz = pos.xyz;
+        }
+    }
+
+    int cell = -1;
+    float dim = 10.0;
+    int n_cells = 2;
+    float cell_size = dim / n_cells;
+    
+
+    vec3 min = vec3(-5.0, 0.0, -5.0);
+    vec3 max = vec3(5.0, 10.0, 5.0);
+
+    int x_cell = int((matrices[i].x - min.x) / cell_size);
+    int y_cell = int((matrices[i].y - min.y) / cell_size);
+    int z_cell = int((matrices[i].z - min.z) / cell_size);
+
+    cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
+
+    vec3 col = vec3(0, 0, 0);
+    for(int c = 0; c < n_cells * n_cells * n_cells; c++)
+    {
+        if(cell == c)
+        {
+            color[i].xyz = vec3(255 / (c % 2), 255 / (c % 3), 255 / (c % 5));
+            break;
         }
     }
 }

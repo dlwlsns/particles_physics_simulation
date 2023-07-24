@@ -25,6 +25,7 @@ class LIB_API Mesh : public Node
 
 		std::vector<glm::vec4> matrices;
 		std::vector<glm::vec4> pingPongMatrices;
+		std::vector<glm::vec4> colors;
 
 		Material* material;
 		bool isVaoInit;
@@ -32,7 +33,7 @@ class LIB_API Mesh : public Node
 		float boundingSphereRadius;
 		bool boundingSphere;
 	public:
-		std::vector<glm::vec3> colors;
+		
 		Mesh(char* name);
 		virtual ~Mesh();
 
@@ -55,6 +56,8 @@ class LIB_API Mesh : public Node
 		std::vector<glm::vec4> getVelocities();
 		void addForce(glm::vec4 matrix);
 		std::vector<glm::vec4> getForces();
+		void addColor(glm::vec4 color);
+		std::vector<glm::vec4> getColors();
 
 		void initVAO();
 		unsigned int getVAO();

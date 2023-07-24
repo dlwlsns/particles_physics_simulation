@@ -476,7 +476,6 @@ bool CgEngine::init(int argc, char* argv[])
     light->use();
     light->bind(0, "in_Position");
     light->bind(1, "in_Normal");
-    light->bind(2, "in_Color");
     light->bind(3, "in_Transform");
 
     cs = new Shader("ComputeShader");
@@ -485,7 +484,7 @@ bool CgEngine::init(int argc, char* argv[])
     cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
     
     cs->build(cs1);
-    cs->bind(4, "ssboTransform");
+    //cs->bind(4, "ssboTransform");
 
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");
