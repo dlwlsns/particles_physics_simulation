@@ -88,8 +88,16 @@ int main(int argc, char *argv[])
 
     int maxVelocity = 5;
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 100; x++) {
-        sphere->addTransform(glm::vec4(0.0f, 5.0f, 0.0f, scale[rand() % 5]));
+    for (int x = 0; x < 500; x++) {
+        sphere->addTransform(
+            glm::vec4(
+                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))), 
+                (1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (10.0f - (1.0f)))),
+                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))),
+                scale[rand() % 5]
+            )
+        );
+
         sphere->addVelocity(
             glm::vec4(
                 (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
@@ -98,6 +106,7 @@ int main(int argc, char *argv[])
                 static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 10.0f))
             )
         );
+
         sphere->addForce(glm::vec4(0.0f, 0.0f, 0.0f, (rand() % 20) + 1));
         sphere->colors.push_back(glm::vec3(rand() % 255, rand() % 255, rand() % 255));
     }

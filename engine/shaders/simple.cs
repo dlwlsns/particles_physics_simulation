@@ -38,18 +38,6 @@ vec3 normals[] = {
     vec3(0.0, 0.0, -1.0)
 };
 
-mat4 calculateReflectionMatrix(vec3 normal)
-{
-    vec3 n = normalize(normal);
-
-    return mat4(
-        1.0 - 2.0 * n.x * n.x, -2.0 * n.x * n.y, -2.0 * n.x * n.z, 0.0,
-        -2.0 * n.y * n.x, 1.0 - 2.0 * n.y * n.y, -2.0 * n.y * n.z, 0.0,
-        -2.0 * n.z * n.x, -2.0 * n.z * n.y, 1.0 - 2.0 * n.z * n.z, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    );
-}
-
 void planeBounce(int i, vec3 normal){
     float mass = force[i].w;
 
@@ -62,9 +50,6 @@ void planeBounce(int i, vec3 normal){
     k *= 0.9;
 
     velocity[i].w = sqrt((k * 2) / mass);
-
-    //truncate if speed is less than 1 mm/s
-    if (velocity[i].w <= 0.001) velocity[i].w = 0.0;
 }
 
 
@@ -74,8 +59,45 @@ void main(void)
     // ID of the ball is equal to the shader instance's ID
     int i = int(gl_WorkGroupID.x);
 
+    if(i == 0)
+    {
+        for(int j = 0; j < 500; j++)
+        {
+            for (int b = 0; b < 500; b++)
+            {
+                if (b != j)
+                {
+                    if (length(matrices_old[b].xyz - matrices_old[j].xyz) <= (matrices_old[j].w + matrices_old[b].w))
+                    {
+                        //https://physics.stackexchange.com/questions/681396/elastic-collision-3d-eqaution
+
+                        vec3 v1 = velocity[j].xyz * velocity[j].w;
+                        vec3 v2 = velocity[b].xyz * velocity[b].w;
+                        vec3 x1 = matrices_old[j].xyz;
+                        vec3 x2 = matrices_old[b].xyz;
+                        float m1 = force[j].w;
+                        float m2 = force[b].w;
+
+
+                        vec3 n = (x2 - x1) / length(x2 - x1);
+                        float m_eff = 1 / ((1 / m1) + (1 / m2));
+                        float v_imp = dot(n, (v1 - v2));
+                        float ja = (1.0 + 0.1) * m_eff * v_imp;
+                        v1 += (-1) * (ja / m1) * n;
+                        v2 += (ja / m2) * n;
+
+                        velocity[j].xyz = normalize(v1);
+                        velocity[j].w = length(v1);
+                        velocity[b].xyz = normalize(v2);
+                        velocity[b].w = length(v2);
+                    }
+                }
+            }
+        }
+    }
+
     if (deltaFrameTime > 0.0){
-        if(velocity[i].w > 0.001)
+        if(velocity[i].w > 0.0)
         {
             float mass = force[i].w;
 
@@ -86,6 +108,8 @@ void main(void)
                 matrices_old[i].w - border,
                 matrices_old[i].w + border
             };
+
+            
 
             // after need to sum forces
             force[i].xyz = mass * gravity;
@@ -133,6 +157,9 @@ void main(void)
                 planeBounce(i, normals[4]);
                 check = true;
             }
+
+            //truncate if speed is less than 1 mm/s
+            if (velocity[i].w <= 0.0001) velocity[i].w = 0.0;
 
             if (check)
                 matrices[i].xyz = pos.xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
