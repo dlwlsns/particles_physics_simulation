@@ -35,6 +35,5 @@ void main(void)
     gl_Position = projection * fragPosition;
     normal = normalMatrix * in_Normal;
 
-
     color = normalize(in_Color);
 }
