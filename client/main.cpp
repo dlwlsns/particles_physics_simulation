@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     float border = 0.5f;
 
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 100; x++) {
+    for (int x = 0; x < 200; x++) {
         sphere->addTransform(
             glm::vec4(
                 (-border*0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
@@ -98,12 +98,6 @@ int main(int argc, char *argv[])
         );
 
         sphere->addVelocity(glm::vec4(0.0f));
-
-        glm::vec3 impulse_direction = glm::vec3(
-            (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
-            (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f)))),
-            (-1.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.0f - (-1.0f))))
-        );
 
         sphere->addForce(glm::vec4(glm::vec3(0.0f), 1.0f));
         

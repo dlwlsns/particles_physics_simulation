@@ -33,7 +33,6 @@ float border = 0.5;
 
 float mass = force[i].w;
 
-
 void applyForce(vec3 newForce)
 {
     force[i].xyz += newForce;
@@ -59,8 +58,6 @@ float bounding[] = {
     matrices_old[i].w - border,
     matrices_old[i].w + border
 };
-
-
 
 void planeBounce(vec3 normal)
 {
@@ -112,8 +109,7 @@ void checkPlaneCollision()
 }
 
 void sphereBounce(int k, int j){
-    //https://en.wikipedia.org/wiki/Elastic_collision
-
+    // get various values
     vec3 v1 = velocity[k].xyz * velocity[k].w;
     vec3 v2 = velocity[j].xyz * velocity[j].w;
     vec3 x1 = matrices_old[k].xyz;
@@ -121,33 +117,33 @@ void sphereBounce(int k, int j){
     float m1 = force[k].w;
     float m2 = force[j].w;
 
-    float m_sum = m1 + m2;
-    vec3 x1x2 = x1 - x2;
-    vec3 x2x1 = x2 - x1;
-    float l_x1x2 = length(x1x2);
-    float l_x2x1 = length(x2x1);
+    // calculate energy
+    vec3 n = normalize(x2 - x1);
+    float m_eff = 1 / ((1 / m1) + (1 / m2));
+    float v_imp = dot(n, (v1 - v2));
+    float energy = (1.0 + 0.9) * m_eff * v_imp;
 
-    vec3 v1f = v1 - (((2 * m2) / m_sum) * (dot((v1 - v2), x1x2) / (l_x1x2 * l_x1x2)) * x1x2);
-    vec3 v2f = v2 - (((2 * m1) / m_sum) * (dot((v2 - v1), x2x1) / (l_x2x1 * l_x2x1)) * x2x1);
+    // calculate new velocities
+    vec3 v1f = v1 - ((energy / m1) * n);
+    vec3 v2f = v2 + ((energy / m2) * n);
 
+    // update velocities
     velocity[k].xyz = normalize(v1f);
     velocity[k].w = length(v1f);
 
     velocity[j].xyz = normalize(v2f);
     velocity[j].w = length(v2f);
-
-    //barrier();
 }
 
 void checkSphereCollision()
 {
-    for(int k = 0; k < 100; k++)
+    for(int k = 0; k < 200; k++)
     {
         vec3 a = force[k].xyz / mass;
         vec3 v = (velocity[k].xyz * velocity[k].w) + (a * deltaFrameTime);
         vec3 pos = matrices_old[k].xyz + (v * deltaFrameTime);
 
-        for (int b = 0; b < 100; b++)
+        for (int b = 0; b < 200; b++)
         {
             if (b != k)
             {
@@ -166,13 +162,15 @@ void checkSphereCollision()
     
 }
 
-
 void main(void)
 {
     if (deltaFrameTime > 0.0){
         applyGravity();
 
-        checkSphereCollision();
+        if (i == 0)
+        {
+            checkSphereCollision();
+        }
 
         checkPlaneCollision();
 
@@ -183,15 +181,7 @@ void main(void)
         velocity[i].xyz = normalize(v);
         velocity[i].w = length(v);
 
-        if(velocity[i].w > 0.0)
-        {
-            // something wierd if force is (0, 0, 0) this breaks
-            matrices[i].xyz = matrices_old[i].xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
-        }
-        else
-        {
-            matrices[i].xyz = matrices_old[i].xyz;
-        }
+        matrices[i].xyz = matrices_old[i].xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
 
         force[i].xyz *= 0.0;
     }
