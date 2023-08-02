@@ -136,7 +136,7 @@
     <None Include="shaders\directLight.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\simple.cs">
+    <None Include="shaders\sphere.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

@@ -482,7 +482,7 @@ bool CgEngine::init(int argc, char* argv[])
     cs = new Shader("ComputeShader");
 
     Shader* cs1 = new Shader("Compute");
-    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
+    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/sphere.comp");
     
     cs->build(cs1);
     cs->bind(4, "ssboTransform");
