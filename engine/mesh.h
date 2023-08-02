@@ -14,6 +14,7 @@ class LIB_API Mesh : public Node
 		unsigned int vboColor;
 		unsigned int vboTransform;
 		unsigned int ssboTransform;
+		unsigned int vboVelocity;
 		unsigned int ssboVelocity;
 		unsigned int ssboForce;
 

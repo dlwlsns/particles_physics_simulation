@@ -125,18 +125,23 @@ void Mesh::initVAO()
 
         glGenBuffers(1, &ssboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboTransform);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, pingPongMatrices.size() * sizeof(glm::vec4), &pingPongMatrices[0], GL_DYNAMIC_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, matrices.size() * sizeof(glm::vec4), &matrices[0], GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboTransform);
+
+        glGenBuffers(1, &vboVelocity);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, vboVelocity);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, velocities.size() * sizeof(glm::vec4), &velocities[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, vboVelocity);
 
         glGenBuffers(1, &ssboVelocity);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboVelocity);
         glBufferData(GL_SHADER_STORAGE_BUFFER, velocities.size() * sizeof(glm::vec4), &velocities[0], GL_DYNAMIC_COPY);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ssboVelocity);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssboVelocity);
 
         glGenBuffers(1, &ssboForce);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboForce);
         glBufferData(GL_SHADER_STORAGE_BUFFER, forces.size() * sizeof(glm::vec4), &forces[0], GL_DYNAMIC_COPY);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssboForce);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, ssboForce);
 
         glBindVertexArray(0);
 
@@ -162,10 +167,16 @@ void Mesh::pingPongBufferSwap() {
     if (check) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, vboTransform);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssboTransform);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, vboVelocity);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssboVelocity);
     }
     else {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssboTransform);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, vboTransform);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, vboVelocity);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ssboVelocity);
     }
 
     check = !check;

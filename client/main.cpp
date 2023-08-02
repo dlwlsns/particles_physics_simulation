@@ -85,14 +85,15 @@ int main(int argc, char *argv[])
     Material* m0 = new Material("m0", glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), 10.0);
 
     float border = 0.5f;
+    float margin = 0.7f;
 
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 200; x++) {
+    for (int x = 0; x < 1000; x++) {
         sphere->addTransform(
             glm::vec4(
-                (-border*0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
-                (0.2f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (6.0f - (0.2f)))),
-                (-border * 0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
+                (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
+                (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (50.0f - (margin)))),
+                (-border * margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
                 0.05f
             )
         );
