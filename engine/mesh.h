@@ -14,6 +14,7 @@ class LIB_API Mesh : public Node
 		unsigned int vboColor;
 		unsigned int vboTransform;
 		unsigned int ssboTransform;
+		unsigned int vboVelocity;
 		unsigned int ssboVelocity;
 		unsigned int ssboForce;
 
@@ -32,7 +33,7 @@ class LIB_API Mesh : public Node
 		float boundingSphereRadius;
 		bool boundingSphere;
 	public:
-		std::vector<glm::vec3> colors;
+		std::vector<glm::vec4> colors;
 		Mesh(char* name);
 		virtual ~Mesh();
 
@@ -55,6 +56,8 @@ class LIB_API Mesh : public Node
 		std::vector<glm::vec4> getVelocities();
 		void addForce(glm::vec4 matrix);
 		std::vector<glm::vec4> getForces();
+		void addColor(glm::vec4 color);
+		std::vector<glm::vec4> getColors();
 
 		void initVAO();
 		unsigned int getVAO();

@@ -8,18 +8,22 @@ mat3 normalMatrix;
 // Attributes:
 layout(location = 0) in vec3 in_Position;
 layout(location = 1) in vec3 in_Normal;
-layout(location = 2) in vec3 in_Color;
 
 layout (std430, binding = 3) buffer vboTransform
 {
     vec4 matrices[];
 };
 
+layout(std430, binding = 2) buffer vboColor
+{
+    vec4 colors[];
+};
+
 
 // Varying:
 out vec4 fragPosition;
 out vec3 normal;
-out vec3 color;
+out vec4 color;
 
 void main(void)
 {
@@ -36,5 +40,5 @@ void main(void)
     normal = normalMatrix * in_Normal;
 
 
-    color = normalize(in_Color);
+    color = vec4(normalize(colors[gl_InstanceID].xyz), colors[gl_InstanceID].w);
 }
