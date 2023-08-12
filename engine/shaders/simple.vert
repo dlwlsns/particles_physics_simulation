@@ -14,7 +14,7 @@ layout (std430, binding = 3) buffer vboTransform
     vec4 matrices[];
 };
 
-layout(std430, binding = 7) buffer vboColor
+layout(std430, binding = 2) buffer vboColor
 {
     vec4 colors[];
 };

@@ -81,48 +81,36 @@ int main(int argc, char *argv[])
     scene = new Node("Root");
 
     Sphere* sphere = new Sphere("sphere", 2);
-    
-    float scale[5] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
 
     Material* m0 = new Material("m0", glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 1.0, 1.0), 10.0);
 
-    int maxVelocity = 5;
+    float border = 0.5f;
+    float margin = 0.7f;
+
     srand((unsigned)time(NULL));
     for (int x = 0; x < 1000; x++) {
         sphere->addTransform(
             glm::vec4(
-                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))),
-                9.0f, 
-                (-4.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4.0f - (-4.0f)))),
-                scale[3]
-            )
-        );
-        sphere->addVelocity(
-            glm::vec4(
-                0.0f,
-                -1.0f,
-                0.0f,
-                1.0f
+                (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
+                (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (9.0f - (margin)))),
+                (-border * margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
+                0.02f
             )
         );
 
-        sphere->addForce(glm::vec4(0.0f, 0.0f, 0.0f, (rand() % 20) + 1));
-        sphere->addColor(
-            glm::vec4(
-                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
-                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
-                (100.0f) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (255.0f - 100.0f))),
-                1.0f
-            )
-        );
+        sphere->addVelocity(glm::vec4(0.0f));
+
+        sphere->addForce(glm::vec4(glm::vec3(0.0f), 1.0f));
+        
+        sphere->colors.push_back(glm::vec4(rand() % 255, rand() % 255, rand() % 255, 1.0f));
     }
 
     sphere->setMaterial(m0);
     scene->addChild(sphere);
 
     // Add cameras to the scene
-    Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 2000.0f, 45.0f, 1.0f);
-    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 15.0f, 10.0f))
+    Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 5.0f, 45.0f, 1.0f);
+    glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 2.0f, 2.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 1.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     staticCam->setObjectCoordinates(s_camera_M);

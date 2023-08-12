@@ -432,7 +432,7 @@ bool CgEngine::init(int argc, char* argv[])
     // Init context:
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowPosition(100, 100);
-    glutInitWindowSize(1280, 720);
+    glutInitWindowSize(1920, 1080);
     glutTimerFunc(1000, timerCallback, 0);
 
     //Set context to opengl4
@@ -517,7 +517,7 @@ bool CgEngine::init(int argc, char* argv[])
     cs = new Shader("ComputeShader");
 
     Shader* cs1 = new Shader("Compute");
-    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/simple.cs");
+    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/sphere.comp");
     
     cs->build(cs1);
     //cs->bind(4, "ssboTransform");
