@@ -42,17 +42,17 @@ float border = 0.5;
 vec3 min = vec3(-border, 0.0, -border);
 vec3 max = vec3(border, 10.0, border);
 
-layout(std430, binding = 10) buffer ssboGridCounter
+layout(std430, binding = 11) buffer ssboGridCounter
 {
     int counters [];
 };
 
-layout(std430, binding = 11) buffer ssboGrid
+layout(std430, binding = 10) buffer ssboGrid
 {
     int cells [];
 };
 
-int n_cells = 2;
+int n_cells = 20;
 float dim = border * 2;
 float cell_size = dim / n_cells;
 
@@ -223,7 +223,7 @@ void checkSphereCollision()
 
                 for (int c = 0; c < counters[cell]; c++)
                 {
-                    int b = cells[cell * 1000 + c];
+                    int b = cells[cell * 10000 + c];
                     if (b != i)
                     {
                         vec3 pos1 = matrices_old[b].xyz;
@@ -248,17 +248,6 @@ void checkSphereCollision()
 void main(void)
 {
     if (deltaFrameTime > 0.0){
-        vec3 col = vec3(0, 0, 0);
-        int cell = getCell(i);
-        for (int c = 0; c < n_cells * n_cells * n_cells; c++)
-        {
-            if (cell == c)
-            {
-                colors[i].xyz = vec3(255 / (c % 2), 255 / (c % 3), 255 / (c % 5));
-                break;
-            }
-        }
-
         applyGravity();
 
         checkSphereCollision();
@@ -275,10 +264,10 @@ void main(void)
         // updating position
         matrices[i].xyz = matrices_old[i].xyz;
 
-        if(velocity[i].w > 0.0)
-        {
+        //if(velocity[i].w > 0.0)
+        //{
             matrices[i].xyz += (velocity[i].xyz * velocity[i].w * deltaFrameTime);
-        }
+        //}
 
         force[i].xyz *= 0.0;
     }

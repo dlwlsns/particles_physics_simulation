@@ -168,7 +168,7 @@ void CgEngine::parse(Node* scene) {
     //renderlist->sort();
 }
 
-int n_cells = 2;
+int n_cells = 20;
 /**
  * This method start the render of the scene.
  */
@@ -187,11 +187,11 @@ void CgEngine::run() {
     
     int n_items = renderlist->get(0)->matrices.size();
 
-    for (int i = 0; i < n_cells; i++) {
+    for (int i = 0; i < n_cells * n_cells * n_cells; i++) {
         counters.push_back(0);
     }
 
-    for (int i = 0; i < n_cells * n_items; i++) {
+    for (int i = 0; i < n_cells * n_cells * n_cells * n_items; i++) {
         cells.push_back(0);
     }
 

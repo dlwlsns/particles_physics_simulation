@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     float margin = 0.7f;
 
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 1000; x++) {
+    for (int x = 0; x < 10000; x++) {
         sphere->addTransform(
             glm::vec4(
                 (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
