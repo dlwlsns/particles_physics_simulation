@@ -33,7 +33,7 @@ class LIB_API Mesh : public Node
 		float boundingSphereRadius;
 		bool boundingSphere;
 	public:
-		std::vector<glm::vec3> colors;
+		std::vector<glm::vec4> colors;
 		Mesh(char* name);
 		virtual ~Mesh();
 

@@ -112,11 +112,9 @@ void Mesh::initVAO()
         // Dynamic mesh data
 
         glGenBuffers(1, &vboColor);
-        glBindBuffer(GL_ARRAY_BUFFER, vboColor);
-        glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), &colors[0], GL_STATIC_DRAW);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(2);
-        glVertexAttribDivisor(2, 1);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, vboColor);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, vboColor);
 
         glGenBuffers(1, &vboTransform);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, vboTransform);

@@ -2,7 +2,7 @@
 
 in vec4 fragPosition;
 in vec3 normal;  
-in vec3 color;
+in vec4 color;
    
 out vec4 fragOutput;
 
@@ -22,6 +22,6 @@ uniform vec3 lightSpecular;
 void main(void)
 {      
     // Final color:
-    fragOutput = vec4(color, 1.0f);
+    fragOutput = color;
     //fragOutput = vec4(nDotL, nDotL,nDotL, 1.0f);
 }

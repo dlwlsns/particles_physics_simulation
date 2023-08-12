@@ -88,13 +88,13 @@ int main(int argc, char *argv[])
     float margin = 0.7f;
 
     srand((unsigned)time(NULL));
-    for (int x = 0; x < 1000; x++) {
+    for (int x = 0; x < 10000; x++) {
         sphere->addTransform(
             glm::vec4(
                 (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
                 (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (50.0f - (margin)))),
                 (-border * margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
-                0.05f
+                0.02f
             )
         );
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
         sphere->addForce(glm::vec4(glm::vec3(0.0f), 1.0f));
         
-        sphere->colors.push_back(glm::vec3(rand() % 255, rand() % 255, rand() % 255));
+        sphere->colors.push_back(glm::vec4(rand() % 255, rand() % 255, rand() % 255, 1.0f));
     }
     sphere->setMaterial(m0);
     scene->addChild(sphere);
