@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         sphere->addTransform(
             glm::vec4(
                 (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
-                (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (9.0f - (margin)))),
+                (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5.0f - (margin)))),
                 (-border * margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
                 0.02f
             )

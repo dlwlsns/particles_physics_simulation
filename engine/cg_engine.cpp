@@ -168,7 +168,7 @@ void CgEngine::parse(Node* scene) {
     //renderlist->sort();
 }
 
-int n_cells = 4;
+int n_cells = 2;
 /**
  * This method start the render of the scene.
  */
@@ -197,12 +197,12 @@ void CgEngine::run() {
 
     glGenBuffers(1, &ssboGrid);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGrid);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_items * n_cells * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
 
     glGenBuffers(1, &ssboGridCounter);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, ssboGridCounter);
 
     glutMainLoop();
@@ -301,9 +301,9 @@ void timerCallback(int value)
 }
 
 void CgEngine::updateGrid() {
-    
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, ssboGridCounter);
 }
 
 /**
@@ -319,11 +319,12 @@ void displayCallback()
     glClearDepth(1.0f);
 
     shaders.activateShader(2);
-    CgEngine::getIstance()->updateGrid();
+    //CgEngine::getIstance()->updateGrid();
     glDispatchCompute(1, 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     // Render Nodes
+    shaders.activateShader(0);
     renderlist->render(cameras[activeCam]->getInverse());
 
     // Swap this context's buffer:  

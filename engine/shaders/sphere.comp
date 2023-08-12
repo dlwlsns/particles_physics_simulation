@@ -39,6 +39,8 @@ layout(std430, binding = 7) buffer ssboForce
 int i = int(gl_WorkGroupID.x);
 
 float border = 0.5;
+vec3 min = vec3(-border, 0.0, -border);
+vec3 max = vec3(border, 10.0, border);
 
 layout(std430, binding = 10) buffer ssboGridCounter
 {
@@ -57,9 +59,6 @@ float cell_size = dim / n_cells;
 int getCell(int i)
 {
     int cell = -1;
-
-    vec3 min = vec3(-border, 0.0, -border);
-    vec3 max = vec3(border, 10.0, border);
 
     if (min.x > matrices[i].x || max.x < matrices[i].x ||
         min.y > matrices[i].y || max.y < matrices[i].y ||
@@ -207,23 +206,43 @@ void checkSphereCollision()
         pos += (v * deltaFrameTime);
     }
 
-    for (int b = 0; b < 1000; b++)
-    {
-        if (b != i)
-        {
-            vec3 pos1 = matrices_old[b].xyz;
-            if(velocity_old[b].w > 0.0)
-            {
-                vec3 v1 = (velocity_old[b].xyz * velocity_old[b].w);
-                pos1 += (v1 * deltaFrameTime);
-            }
+    for(int x_check = 0; x_check < 3; x_check++){
+        for(int y_check = 0; y_check < 3; y_check++){
+            for(int z_check = 0; z_check < 3; z_check++){
+                int x_cell = int((matrices_old[i].x - min.x) / cell_size) - 1 + x_check;
+                int y_cell = int((matrices_old[i].y - min.y) / cell_size) - 1 + y_check;
+                int z_cell = int((matrices_old[i].z - min.z) / cell_size) - 1 + z_check;
 
-            if (length(pos1 - pos) <= (matrices_old[i].w + matrices_old[b].w))
-            {
-                sphereBounce(i, b);
+                if(x_cell < 0 || x_cell >= n_cells
+                    || y_cell < 0 || y_cell >= n_cells
+                    || y_cell < 0 || y_cell >= n_cells){
+                    continue;    
+                }
+
+                int cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
+
+                for (int c = 0; c < counters[cell]; c++)
+                {
+                    int b = cells[cell * 1000 + c];
+                    if (b != i)
+                    {
+                        vec3 pos1 = matrices_old[b].xyz;
+                        if(velocity_old[b].w > 0.0)
+                        {
+                            vec3 v1 = (velocity_old[b].xyz * velocity_old[b].w);
+                            pos1 += (v1 * deltaFrameTime);
+                        }
+
+                        if (length(pos1 - pos) <= (matrices_old[i].w + matrices_old[b].w))
+                        {
+                            sphereBounce(i, b);
+                        }
+                    }
+                }
             }
         }
     }
+    
 }
 
 void main(void)
@@ -256,10 +275,10 @@ void main(void)
         // updating position
         matrices[i].xyz = matrices_old[i].xyz;
 
-        //if(velocity[i].w > 0.0)
-        //{
+        if(velocity[i].w > 0.0)
+        {
             matrices[i].xyz += (velocity[i].xyz * velocity[i].w * deltaFrameTime);
-        //}
+        }
 
         force[i].xyz *= 0.0;
     }

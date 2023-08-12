@@ -50,9 +50,13 @@ int getCell(int i){
 void main(void)
 {
     for(int i = 0; i < spheres; i++){
+        counters[i] = 0;
+    }
+
+    for(int i = 0; i < spheres; i++){
         int cell = getCell(i);
 
         cells[cell * spheres + counters[cell]] = i;
-        counters[cell]++;
+        counters[cell] += 1;
     }
 }
