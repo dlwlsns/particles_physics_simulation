@@ -10,11 +10,6 @@ layout(std430, binding = 3) buffer vboTransform
     vec4 matrices[];
 };
 
-layout(std430, binding = 7) buffer vboColor
-{
-    vec4 color[];
-};
-
 layout(std430, binding = 10) buffer ssboGridCounter
 {
     int counters[];
@@ -26,9 +21,9 @@ layout(std430, binding = 11) buffer ssboGrid
 };
     
 int spheres = 1000;
-float border = 5.0;
+float border = 0.5;
 int n_cells = 2;
-float dim = 10.0;
+float dim = border * 2;
 float cell_size = dim / n_cells;
 
 int getCell(int i){
