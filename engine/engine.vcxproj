@@ -130,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\directLight.frag" />
+    <None Include="shaders\grid.comp" />
     <None Include="shaders\simple.cs" />
     <None Include="shaders\simple.vert" />
   </ItemGroup>

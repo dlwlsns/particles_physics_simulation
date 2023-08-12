@@ -165,10 +165,10 @@ void CgEngine::parse(Node* scene) {
         parse(scene->getChild(i));
     }
 
-    
     //renderlist->sort();
 }
 
+int n_cells = 4;
 /**
  * This method start the render of the scene.
  */
@@ -183,6 +183,27 @@ void CgEngine::run() {
         std::cout << "No camera loaded." << std::endl;
         return;
     }
+
+    
+    int n_items = renderlist->get(0)->matrices.size();
+
+    for (int i = 0; i < n_cells; i++) {
+        counters.push_back(0);
+    }
+
+    for (int i = 0; i < n_cells * n_items; i++) {
+        cells.push_back(0);
+    }
+
+    glGenBuffers(1, &ssboGrid);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGrid);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_items * n_cells * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
+
+    glGenBuffers(1, &ssboGridCounter);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, ssboGridCounter);
 
     glutMainLoop();
 }
@@ -216,6 +237,10 @@ bool CgEngine::free()
  */
 void __stdcall DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam)
 {
+    if (type == GL_DEBUG_TYPE_OTHER) {
+        return;
+    }
+
     //std::cout << "OpenGL says: \"" << std::string(message) << "\"" << std::endl;
     std::cout << "---------------------opengl-callback-start------------" << std::endl;
     std::cout << "message: " << message << std::endl;
@@ -275,6 +300,12 @@ void timerCallback(int value)
     glutTimerFunc(1000, timerCallback, 0);
 }
 
+void CgEngine::updateGrid() {
+    
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
+}
+
 /**
  * This is the main rendering routine automatically invoked by FreeGLUT.
  */
@@ -286,6 +317,11 @@ void displayCallback()
     glClearColor(0.0f, 0.5f, 1.0f, 1.0f); // RGBA components
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearDepth(1.0f);
+
+    shaders.activateShader(2);
+    CgEngine::getIstance()->updateGrid();
+    glDispatchCompute(1, 1, 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     // Render Nodes
     renderlist->render(cameras[activeCam]->getInverse());
@@ -486,6 +522,12 @@ bool CgEngine::init(int argc, char* argv[])
     cs->build(cs1);
     //cs->bind(4, "ssboTransform");
 
+    Shader* cs2 = new Shader("ComputeShader_grid");
+    Shader* cs3 = new Shader("Grid");
+    cs3->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/grid.comp");
+
+    cs2->build(cs3);
+
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");
     int matAmbientLoc = shader->getParamLocation("matAmbient");
@@ -513,6 +555,7 @@ bool CgEngine::init(int argc, char* argv[])
 
     shaders.addShader(light);
     shaders.addShader(cs);
+    shaders.addShader(cs2);
 
     shaders.activateShader(0);
 

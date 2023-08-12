@@ -45,6 +45,14 @@ class LIB_API CgEngine
 		// Singleton
 		static CgEngine* istance;
 		CgEngine();
+
+		unsigned int ssboGrid;
+		unsigned int ssboGridCounter;
+
+		std::vector<int> cells;
+		std::vector<int> counters;
+
+		
 	public:   
 		static CgEngine* getIstance();
 
@@ -62,4 +70,5 @@ class LIB_API CgEngine
 		void cameraRotation();
 		void toggleWireframe();
 		void addGuiText(char* text);
+		void updateGrid();
 };

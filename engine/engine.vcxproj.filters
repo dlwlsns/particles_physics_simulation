@@ -139,5 +139,8 @@
     <None Include="shaders\simple.cs">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\grid.comp">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

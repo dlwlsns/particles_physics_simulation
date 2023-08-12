@@ -30,9 +30,45 @@ layout(std430, binding = 7) buffer vboColor
     vec4 color[];
 };
 
-vec3 gravity = vec3(0.0, -9.81, 0.0);
-    
+layout(std430, binding = 10) buffer ssboGridCounter
+{
+    int counters [];
+};
+
+layout(std430, binding = 11) buffer ssboGrid
+{
+    int cells [];
+};
+
 float border = 5.0;
+int n_cells = 2;
+float dim = 10.0;
+float cell_size = dim / n_cells;
+
+int getCell(int i)
+{
+    int cell = -1;
+
+    vec3 min = vec3(-border, 0.0, -border);
+    vec3 max = vec3(border, 10.0, border);
+
+    if (min.x > matrices[i].x || max.x < matrices[i].x ||
+        min.y > matrices[i].y || max.y < matrices[i].y ||
+        min.z > matrices[i].z || max.z < matrices[i].z)
+    {
+        return cell;
+    }
+
+    int x_cell = int((matrices[i].x - min.x) / cell_size);
+    int y_cell = int((matrices[i].y - min.y) / cell_size);
+    int z_cell = int((matrices[i].z - min.z) / cell_size);
+
+    cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
+
+    return cell;
+}
+
+vec3 gravity = vec3(0.0, -9.81, 0.0);
 
 vec3 normals[] = {
     vec3(0.0, 1.0, 0.0),
@@ -79,7 +115,18 @@ void main(void)
     int i = int(gl_WorkGroupID.x);
 
     if (deltaFrameTime > 0.0){
-        if(velocity[i].w > 0.0)
+        vec3 col = vec3(0, 0, 0);
+        int cell = getCell(i);
+        for (int c = 0; c < n_cells * n_cells * n_cells; c++)
+        {
+            if (cell == c)
+            {
+                color[i].xyz = vec3(255 / (c % 2), 255 / (c % 3), 255 / (c % 5));
+                break;
+            }
+        }
+
+        if (velocity[i].w > 0.0)
         {
             float mass = force[i].w;
 
@@ -142,31 +189,6 @@ void main(void)
                 matrices[i].xyz = pos.xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
             else
                 matrices[i].xyz = pos.xyz;
-        }
-    }
-
-    int cell = -1;
-    float dim = 10.0;
-    int n_cells = 2;
-    float cell_size = dim / n_cells;
-    
-
-    vec3 min = vec3(-5.0, 0.0, -5.0);
-    vec3 max = vec3(5.0, 10.0, 5.0);
-
-    int x_cell = int((matrices[i].x - min.x) / cell_size);
-    int y_cell = int((matrices[i].y - min.y) / cell_size);
-    int z_cell = int((matrices[i].z - min.z) / cell_size);
-
-    cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
-
-    vec3 col = vec3(0, 0, 0);
-    for(int c = 0; c < n_cells * n_cells * n_cells; c++)
-    {
-        if(cell == c)
-        {
-            color[i].xyz = vec3(255 / (c % 2), 255 / (c % 3), 255 / (c % 5));
-            break;
         }
     }
 }
