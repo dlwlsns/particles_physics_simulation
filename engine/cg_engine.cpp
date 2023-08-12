@@ -319,7 +319,7 @@ void displayCallback()
     glClearDepth(1.0f);
 
     shaders.activateShader(2);
-    //CgEngine::getIstance()->updateGrid();
+    CgEngine::getIstance()->updateGrid();
     glDispatchCompute(1, 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
