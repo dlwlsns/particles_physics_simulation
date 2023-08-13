@@ -50,7 +50,7 @@ class LIB_API CgEngine
 		unsigned int ssboGridCounter;
 
 		std::vector<int> cells;
-		std::vector<int> counters;
+		std::vector<unsigned int> counters;
 
 		
 	public:   

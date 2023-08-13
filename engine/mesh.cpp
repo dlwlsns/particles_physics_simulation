@@ -103,8 +103,8 @@ void Mesh::initVAO()
         glGenBuffers(1, &vboVertex);
         glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
         glBufferData(GL_ARRAY_BUFFER, N * sizeof(glm::vec3), &verticies[0], GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(15, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(15);
 
         glGenBuffers(1, &vboNormals);
         glBindBuffer(GL_ARRAY_BUFFER, vboNormals);

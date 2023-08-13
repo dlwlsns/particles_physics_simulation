@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
                 (-border* margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
                 (margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5.0f - (margin)))),
                 (-border * margin) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * margin - (-border * margin)))),
-                0.02f
+                0.01f
             )
         );
 

@@ -6,7 +6,7 @@ uniform mat4 projection;
 mat3 normalMatrix;
 
 // Attributes:
-layout(location = 0) in vec3 in_Position;
+layout(location = 15) in vec3 in_Position;
 layout(location = 1) in vec3 in_Normal;
 
 layout (std430, binding = 3) buffer vboTransform

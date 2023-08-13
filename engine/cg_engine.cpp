@@ -200,10 +200,12 @@ void CgEngine::run() {
     glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
 
+    
     glGenBuffers(1, &ssboGridCounter);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, ssboGridCounter);
+    // bind the buffer and define its initial storage capacity
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
+    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * n_cells * n_cells * n_cells, &counters[0], GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, ssboGridCounter);
 
     glutMainLoop();
 }
@@ -301,9 +303,8 @@ void timerCallback(int value)
 }
 
 void CgEngine::updateGrid() {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGridCounter);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * sizeof(int), &counters[0], GL_DYNAMIC_COPY);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, ssboGridCounter);
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
+    glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 8000, static_cast<void*>(counters.data()));
 }
 
 /**
@@ -318,10 +319,7 @@ void displayCallback()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearDepth(1.0f);
 
-    shaders.activateShader(2);
-    CgEngine::getIstance()->updateGrid();
-    glDispatchCompute(1, 1, 1);
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    
 
     // Render Nodes
     shaders.activateShader(0);
@@ -333,6 +331,9 @@ void displayCallback()
 
     // run compute shader
     shaders.activateShader(1);
+
+    // reset atomic counters
+    CgEngine::getIstance()->updateGrid();
 
     // update delta time
     GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
@@ -511,7 +512,7 @@ bool CgEngine::init(int argc, char* argv[])
     light = new Shader("directLight");
     light->build(vs, fs);
     light->use();
-    light->bind(0, "in_Position");
+    light->bind(15, "in_Position");
     light->bind(1, "in_Normal");
     light->bind(3, "in_Transform");
 
@@ -522,12 +523,6 @@ bool CgEngine::init(int argc, char* argv[])
     
     cs->build(cs1);
     //cs->bind(4, "ssboTransform");
-
-    Shader* cs2 = new Shader("ComputeShader_grid");
-    Shader* cs3 = new Shader("Grid");
-    cs3->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/grid.comp");
-
-    cs2->build(cs3);
 
     /*
     int matEmissionLoc = shader->getParamLocation("matEmission");
@@ -556,7 +551,6 @@ bool CgEngine::init(int argc, char* argv[])
 
     shaders.addShader(light);
     shaders.addShader(cs);
-    shaders.addShader(cs2);
 
     shaders.activateShader(0);
 
