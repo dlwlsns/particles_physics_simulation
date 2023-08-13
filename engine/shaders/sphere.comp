@@ -42,15 +42,12 @@ float border = 0.5;
 vec3 min = vec3(-border, 0.0, -border);
 vec3 max = vec3(border, 10.0, border);
 
-layout(std430, binding = 11) buffer ssboGridCounter
-{
-    int counters [];
-};
-
 layout(std430, binding = 10) buffer ssboGrid
 {
     int cells [];
 };
+
+layout (binding = 0) uniform atomic_uint counters[8000];
 
 int n_cells = 20;
 float dim = border * 2;
@@ -221,7 +218,7 @@ void checkSphereCollision()
 
                 int cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
 
-                for (int c = 0; c < counters[cell]; c++)
+                for (int c = 0; c < atomicCounter(counters[cell]); c++)
                 {
                     int b = cells[cell * 10000 + c];
                     if (b != i)
@@ -248,6 +245,10 @@ void checkSphereCollision()
 void main(void)
 {
     if (deltaFrameTime > 0.0){
+        int cell = getCell(i);
+        uint count = atomicCounterIncrement(counters[cell]);
+        cells[cell * 10000 + count] = i;
+
         applyGravity();
 
         checkSphereCollision();
