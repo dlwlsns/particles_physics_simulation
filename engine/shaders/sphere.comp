@@ -4,7 +4,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 // Uniforms:
 uniform float deltaFrameTime;
-int spheres = 10000;
+int spheres = 50000;
 
 layout(std430, binding = 2) buffer vboColor
 {
@@ -81,6 +81,11 @@ void updateVelocity(int index, vec3 newVelocity)
 {
     velocity[index].xyz = normalize(newVelocity);
     velocity[index].w = length(newVelocity);
+
+    if(velocity[index].w < 0.001){
+        velocity[index].w = 0.0;
+    }
+
     barrier();
 
     velocity_old[index].xyz = velocity[index].xyz;
@@ -123,7 +128,7 @@ void planeBounce(vec3 normal)
     // calculate energy loss and new velocity length
     float l = velocity_old[i].w;
     float k = 0.5 * mass * l * l;
-    k *= 0.9;
+    k *= 0.8;
 
     v *= sqrt((k * 2) / mass);
 
@@ -178,7 +183,7 @@ void sphereBounce(int k, int j){
     vec3 n = normalize(x2 - x1);
     float m_eff = (m1 * m2) / (m1 + m2);
     float v_imp = dot(n, (v2 - v1));
-    float energy = (1.0 + 0.9) * m_eff * v_imp;
+    float energy = (1.0 + 0.8) * m_eff * v_imp;
 
     // calculate new velocities
     vec3 v1f = v1 + ((energy / m1) * n);
@@ -189,6 +194,7 @@ void sphereBounce(int k, int j){
     updateVelocity(j, v2f);
 }
 
+bool check_coll = false;
 void checkSphereCollision()
 {
     vec3 pos = matrices_old[i].xyz + (velocity_old[i].xyz * velocity_old[i].w * deltaFrameTime);
@@ -245,10 +251,45 @@ void main(void)
 
         checkPlaneCollision();
 
-        //colors[i] = vec4(v, 1.0);
+        vec3 pos = matrices_old[i].xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
+        for(int x_check = 0; x_check < 3 && !check_coll; x_check++){
+            for(int y_check = 0; y_check < 3 && !check_coll; y_check++){
+                for(int z_check = 0; z_check < 3 && !check_coll; z_check++){
+                    int x_cell = int((matrices_old[i].x - min.x) / cell_size) - 1 + x_check;
+                    int y_cell = int((matrices_old[i].y - min.y) / cell_size) - 1 + y_check;
+                    int z_cell = int((matrices_old[i].z - min.z) / cell_size) - 1 + z_check;
+
+                    if(x_cell < 0 || x_cell >= n_cells
+                        || y_cell < 0 || y_cell >= n_cells
+                        || y_cell < 0 || y_cell >= n_cells){
+                        continue;    
+                    }
+
+                    int cell = x_cell + n_cells * (y_cell + n_cells * z_cell);
+
+                    for (int c = 0; c < atomicCounter(counters[cell]) && !check_coll; c++)
+                    {
+                        int b = cells[cell * spheres + c];
+                        if (b != i)
+                        {
+                            vec3 pos1 = matrices_old[b].xyz;
+
+                            if (length(pos1 - pos) <= (matrices_old[i].w + matrices_old[b].w))
+                            {
+                                check_coll = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // updating position
-        matrices[i].xyz = matrices_old[i].xyz + (velocity[i].xyz * velocity[i].w * deltaFrameTime);
+        matrices[i].xyz = matrices_old[i].xyz;
+        if(!check_coll){
+            matrices[i].xyz += (velocity[i].xyz * velocity[i].w * deltaFrameTime);
+        }
 
         force[i].xyz *= 0.0;
     }
