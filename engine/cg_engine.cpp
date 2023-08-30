@@ -326,7 +326,7 @@ void CgEngine::updateUniforms() {
     GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
     glUniform1f(location, deltaFrameTime);
 
-    if (deltaFrameTime < 0.1f) {
+    if (deltaFrameTime == 0.0f) {
         // set sphere count
         location = glGetUniformLocation(shaders.getActiveShader()->glId, "sphereCount");
         glUniform1i(location, renderlist->get(0)->matrices.size());
@@ -361,10 +361,6 @@ void displayCallback()
     shaders.activateShader(0);
     renderlist->render(cameras[activeCam]->getInverse());
 
-    // Swap this context's buffer:  
-    frames++;
-    glutSwapBuffers();
-
     // run compute shader
     shaders.activateShader(1);
 
@@ -375,6 +371,10 @@ void displayCallback()
     // dispatch compute shader
     glDispatchCompute((GLuint)(renderlist->get(0)->matrices.size()), 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    // Swap this context's buffer:  
+    frames++;
+    glutSwapBuffers();
 
     deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
