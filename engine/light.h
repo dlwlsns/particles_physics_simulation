@@ -1,8 +1,6 @@
 #pragma once
 #include "node.h"
 
-#define LIGHT_INDEX 16384
-
 class LIB_API Light : public Node
 {
 	private:

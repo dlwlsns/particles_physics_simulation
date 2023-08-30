@@ -33,7 +33,7 @@ Node* currentScene;
 std::vector<Material*> materials;
 std::vector<Camera*> cameras;
 std::vector<char*> guiText;
-int activeCam = 1;
+int activeCam = 0;
 RenderList* renderlist;
 
 // Appearance
@@ -76,7 +76,7 @@ void CgEngine::cameraRotation() {
     activeCam++;
 
     if (activeCam >= cameras.size())
-        activeCam = 1;
+        activeCam = 0;
 
     Shader* current_shader = shaders.getShaderById(0);
     current_shader->setMatrix(current_shader->getParamLocation("projection"), cameras[activeCam]->getProjection());
@@ -132,6 +132,25 @@ void CgEngine::addGuiText(char* text) {
     guiText.push_back(text);
 }
 
+void CgEngine::setBorderDimension(float dimension) {
+    if (dimension < 0) {
+        dimension *= -1;
+    }
+
+    this->border = dimension;
+}
+
+void CgEngine::setCellCount(unsigned int cells) {
+    if (cells == 0) {
+        this->cellCount = 1;
+    }else
+        this->cellCount = cells;
+}
+
+void CgEngine::setGridCenter(glm::vec3 center) {
+    this->gridCenter = center;
+}
+
 /**
  * This function add the node and all his children to the RenderList.
  *
@@ -139,11 +158,6 @@ void CgEngine::addGuiText(char* text) {
  */
 void CgEngine::parse(Node* scene) {
     if (scene->getParent() == nullptr) {
-        while (cameras.size() > 1)
-        {
-            cameras.pop_back();
-        }
-
         currentScene = scene;
     }
 
@@ -164,11 +178,8 @@ void CgEngine::parse(Node* scene) {
     for (int i = 0; i < scene->getChildrenCount(); i++) {
         parse(scene->getChild(i));
     }
-
-    //renderlist->sort();
 }
 
-int n_cells = 20;
 /**
  * This method start the render of the scene.
  */
@@ -179,7 +190,7 @@ void CgEngine::run() {
         return;
     }
 
-    if (cameras.size() == 1) {
+    if (cameras.size() < 1) {
         std::cout << "No camera loaded." << std::endl;
         return;
     }
@@ -187,25 +198,27 @@ void CgEngine::run() {
     
     int n_items = renderlist->get(0)->matrices.size();
 
-    for (int i = 0; i < n_cells * n_cells * n_cells; i++) {
+    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount; i++) {
         counters.push_back(0);
     }
 
-    for (int i = 0; i < n_cells * n_cells * n_cells * n_items; i++) {
+    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount * n_items; i++) {
         cells.push_back(0);
     }
 
     glGenBuffers(1, &ssboGrid);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGrid);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, n_cells * n_cells * n_cells * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, this->cellCount * this->cellCount * this->cellCount * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
 
     
     glGenBuffers(1, &ssboGridCounter);
     // bind the buffer and define its initial storage capacity
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
-    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * n_cells * n_cells * n_cells, &counters[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * this->cellCount * this->cellCount * this->cellCount, &counters[0], GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, ssboGridCounter);
+
+    
 
     glutMainLoop();
 }
@@ -303,8 +316,33 @@ void timerCallback(int value)
 }
 
 void CgEngine::updateGrid() {
+    // 8000 is a limitation forced by arrays in compute shaders
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
     glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 8000, static_cast<void*>(counters.data()));
+}
+
+void CgEngine::updateUniforms() {
+    // update delta time
+    GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
+    glUniform1f(location, deltaFrameTime);
+
+    if (deltaFrameTime < 0.1f) {
+        // set sphere count
+        location = glGetUniformLocation(shaders.getActiveShader()->glId, "sphereCount");
+        glUniform1i(location, renderlist->get(0)->matrices.size());
+
+        // set borders
+        location = glGetUniformLocation(shaders.getActiveShader()->glId, "border");
+        glUniform1f(location, this->border);
+
+        // set cell count
+        location = glGetUniformLocation(shaders.getActiveShader()->glId, "n_cells");
+        glUniform1i(location, this->cellCount);
+
+        // set grid center
+        location = glGetUniformLocation(shaders.getActiveShader()->glId, "grid_center");
+        glUniform3f(location, this->gridCenter.x, this->gridCenter.y, this->gridCenter.z);
+    }
 }
 
 /**
@@ -319,8 +357,6 @@ void displayCallback()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearDepth(1.0f);
 
-    
-
     // Render Nodes
     shaders.activateShader(0);
     renderlist->render(cameras[activeCam]->getInverse());
@@ -332,12 +368,9 @@ void displayCallback()
     // run compute shader
     shaders.activateShader(1);
 
-    // reset atomic counters
+    // reset atomic counters and uniforms
     CgEngine::getIstance()->updateGrid();
-
-    // update delta time
-    GLuint location = glGetUniformLocation(shaders.getActiveShader()->glId, "deltaFrameTime");
-    glUniform1fv(location, 1, &deltaFrameTime);
+    CgEngine::getIstance()->updateUniforms();
 
     // dispatch compute shader
     glDispatchCompute((GLuint)(renderlist->get(0)->matrices.size()), 1, 1);
@@ -360,16 +393,6 @@ void reshapeCallback(int width, int height)
     glViewport(0, 0, width, height);
 
     for (int i = 0; i < cameras.size(); i++) {
-        if (i == 0) {
-            OrthographicCamera* gui = dynamic_cast<OrthographicCamera*>(cameras[i]);
-
-            gui->setXMax(width);
-            gui->setYMax(height);
-
-            gui->setProjection(glm::ortho(gui->getXMin(), gui->getXMax(), gui->getYMin(), gui->getYMax(), gui->getNearPlane(), gui->getFarPlane()));
-            continue;
-        }
-
         if (dynamic_cast<const PerspectiveCamera*>(cameras[i]) != nullptr) {
             PerspectiveCamera* pCamera = dynamic_cast<PerspectiveCamera*>(cameras[i]);
 
@@ -452,13 +475,6 @@ bool CgEngine::init(int argc, char* argv[])
     glewExperimental = GL_TRUE;
     GLenum error = glewInit();
 
-    // OpenGL 2.1 is required:
-    /*if (!glewIsSupported("GL_VERSION_2_1"))
-    {
-        std::cout << "OpenGL 2.1 not supported" << std::endl;
-        return 0;
-    }*/
-
     if (error != GLEW_OK)
     {
         std::cout << "[ERROR] " << glewGetErrorString(error) << std::endl;
@@ -469,7 +485,7 @@ bool CgEngine::init(int argc, char* argv[])
             std::cout << "Driver supports OpenGL 4.5\n" << std::endl;
         else
         {
-            std::cout << "[ERROR] OpenGL 4.4 not supported\n" << std::endl;
+            std::cout << "[ERROR] OpenGL 4.5 not supported\n" << std::endl;
             return -1;
         }
 
@@ -483,12 +499,7 @@ bool CgEngine::init(int argc, char* argv[])
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     // Set lighting options
-    //glEnable(GL_LIGHTING);
-    //glEnable(GL_LIGHT0);
     glEnable(GL_CULL_FACE);
-    //glEnable(GL_NORMALIZE);
-
-    //glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
 
     // Set callback functions:
     glutDisplayFunc(displayCallback);
@@ -522,32 +533,6 @@ bool CgEngine::init(int argc, char* argv[])
     cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/sphere.comp");
     
     cs->build(cs1);
-    //cs->bind(4, "ssboTransform");
-
-    /*
-    int matEmissionLoc = shader->getParamLocation("matEmission");
-    int matAmbientLoc = shader->getParamLocation("matAmbient");
-    int matDiffuseLoc = shader->getParamLocation("matDiffuse");
-    int matSpecularLoc = shader->getParamLocation("matSpecular");
-    int matShininessLoc = shader->getParamLocation("matShininess");
-
-    int lightPositionLoc = shader->getParamLocation("lightPosition");
-    int lightAmbientLoc = shader->getParamLocation("lightAmbient");
-    int lightDiffuseLoc = shader->getParamLocation("lightDiffuse");
-    int lightSpecularLoc = shader->getParamLocation("lightSpecular");
-
-    // Set initial material and light params:
-    shader->setVec3(matEmissionLoc, glm::vec3(0.0f, 0.0f, 0.0f));
-    shader->setVec3(matAmbientLoc, glm::vec3(0.1f, 0.1f, 0.1f));
-    shader->setVec3(matDiffuseLoc, glm::vec3(0.7f, 0.7f, 0.7f));
-    shader->setVec3(matSpecularLoc, glm::vec3(0.6f, 0.6f, 0.6f));
-    shader->setFloat(matShininessLoc, 128.0f);
-
-    shader->setVec3(lightAmbientLoc, glm::vec3(1.0f, 1.0f, 1.0f));
-    shader->setVec3(lightDiffuseLoc, glm::vec3(1.0f, 1.0f, 1.0f));
-    shader->setVec3(lightSpecularLoc, glm::vec3(1.0f, 1.0f, 1.0f));
-
-    shader->setVec3(lightPositionLoc, glm::vec3(10, 10, 0));*/
 
     shaders.addShader(light);
     shaders.addShader(cs);
@@ -555,10 +540,6 @@ bool CgEngine::init(int argc, char* argv[])
     shaders.activateShader(0);
 
     renderlist = new RenderList("renderlist");
-
-    // Add an Orthographic Camera for the GUI
-    Camera* gui = new OrthographicCamera("GUI", -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-    cameras.push_back(gui);
 
     // Done:
     initFlag = true;

@@ -42,6 +42,10 @@ class LIB_API CgEngine
 	private:
 		bool initFlag;
 
+		float border = 0.5f;
+		int cellCount = 1;
+		glm::vec3 gridCenter = glm::vec3(0);
+
 		// Singleton
 		static CgEngine* istance;
 		CgEngine();
@@ -57,7 +61,6 @@ class LIB_API CgEngine
 		static CgEngine* getIstance();
 
 		bool init(int argc, char* argv[]);
-		Node* load(char* filePath);
 		void parse(Node* scene);
 		void run();
 		bool free();     
@@ -71,4 +74,9 @@ class LIB_API CgEngine
 		void toggleWireframe();
 		void addGuiText(char* text);
 		void updateGrid();
+		void updateUniforms();
+
+		void setBorderDimension(float dimension);
+		void setCellCount(unsigned int cells);
+		void setGridCenter(glm::vec3 center);
 };

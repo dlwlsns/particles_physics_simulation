@@ -3,8 +3,13 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 // Uniforms:
+// limited to 8000 because it can not be dinamically set, 8000 is a 20x20x20 grid
+layout (binding = 0) uniform atomic_uint counters[8000];
 uniform float deltaFrameTime;
-int spheres = 50000;
+uniform int sphereCount;
+uniform float border;
+uniform int n_cells;
+uniform vec3 grid_center;
 
 layout(std430, binding = 2) buffer vboColor
 {
@@ -36,24 +41,21 @@ layout(std430, binding = 7) buffer ssboForce
     vec4 force[];
 };
 
+layout(std430, binding = 10) buffer ssboGrid
+{
+    int cells[];
+};
+
 // ID of the ball is equal to the shader instance's ID
 int i = int(gl_WorkGroupID.x);
 
-float border = 0.5;
-vec3 min = vec3(-border, 0.0, -border);
-vec3 max = vec3(border, 10.0, border);
+vec3 min = vec3(grid_center.x-border, 0.0, grid_center.z-border);
+vec3 max = vec3(grid_center.x+border, 5.0, grid_center.z+border);
 
-layout(std430, binding = 10) buffer ssboGrid
-{
-    int cells [];
-};
-
-layout (binding = 0) uniform atomic_uint counters[8000];
-
-int n_cells = 20;
 float dim = border * 2;
 float cell_size = dim / n_cells;
 
+// function to get the cell ID that contain the sphere
 int getCell(int i)
 {
     int cell = -1;
@@ -94,6 +96,8 @@ void updateVelocity(int index, vec3 newVelocity)
     barrier();
 }
 
+// Forces functions
+
 void applyForce(vec3 newForce)
 {
     force[i].xyz += newForce;
@@ -103,6 +107,8 @@ void applyGravity()
 {
     applyForce(vec3(0.0, -9.81, 0.0) * force[i].w);
 }
+
+// Planes data
 
 vec3 normals[] = {
     vec3(0.0, 1.0, 0.0),
@@ -119,6 +125,8 @@ float bounding[] = {
     matrices_old[i].w - border,
     matrices_old[i].w + border
 };
+
+// Collision detection and response
 
 void planeBounce(vec3 normal)
 {
@@ -216,7 +224,7 @@ void checkSphereCollision()
 
                 for (int c = 0; c < atomicCounter(counters[cell]); c++)
                 {
-                    int b = cells[cell * spheres + c];
+                    int b = cells[cell * sphereCount + c];
                     if (b != i)
                     {
                         vec3 pos1 = matrices_old[b].xyz + (velocity_old[b].xyz * velocity_old[b].w * deltaFrameTime);
@@ -238,7 +246,7 @@ void main(void)
     if (deltaFrameTime > 0.0){
         int cell = getCell(i);
         uint count = atomicCounterIncrement(counters[cell]);
-        cells[cell * spheres + count] = i;
+        cells[cell * sphereCount + count] = i;
 
         applyGravity();
 
@@ -269,7 +277,7 @@ void main(void)
 
                     for (int c = 0; c < atomicCounter(counters[cell]) && !check_coll; c++)
                     {
-                        int b = cells[cell * spheres + c];
+                        int b = cells[cell * sphereCount + c];
                         if (b != i)
                         {
                             vec3 pos1 = matrices_old[b].xyz;

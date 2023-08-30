@@ -14,9 +14,6 @@ Shader::Shader(char* name) : Object(name), type(TYPE_UNDEFINED), glId(0)
 	
 }
 
-
-//Node::Node(char* name) : Object(name), parent(nullptr), objectCoordinates(glm::mat4(1.0f)), worldCoordinates(glm::mat4(1.0f)) {}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * Destructor. Make sure to call it only when the OpenGL context is available.

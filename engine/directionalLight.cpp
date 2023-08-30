@@ -7,8 +7,6 @@
 
 DirectionalLight::DirectionalLight(char* name, float radius) : Light(name, radius) {
 	this->setPositionW(0.0f);
-
-	//glLightfv(this->getLightId(), GL_POSITION, glm::value_ptr(this->getPosition()));
 }
 
 DirectionalLight::~DirectionalLight() {
