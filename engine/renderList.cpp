@@ -54,6 +54,9 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 	shaders.activateShader(0);
 
 	glDepthFunc(GL_LESS);
+
+	Shader* current_shader = shaders.getShaderById(0);
+	glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(inverseCamera_M));
 	
 	for (RenderItem* item : items)
 	{

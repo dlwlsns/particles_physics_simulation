@@ -463,7 +463,7 @@ bool CgEngine::init(int argc, char* argv[])
     //Set context to opengl4
     glutInitContextVersion(4, 5);
     glutInitContextProfile(GLUT_CORE_PROFILE);
-    glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
+    //glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
     // Set some optional flags:
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);

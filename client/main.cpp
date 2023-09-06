@@ -10,6 +10,7 @@
 
 CgEngine* engine;
 Node* scene;
+Camera* camera;
 
 /**
  * This callback is invoked each time a keyboard key is pressed.
@@ -19,16 +20,24 @@ Node* scene;
  */
 void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 {
+    const float cameraSpeed = 0.2f; // adjust accordingly
     switch (key)
     {
-        case 'w': // Wireframe toggle
-            engine->toggleWireframe();
-            break;
-        case 'c': // Camera cycle
-            engine->cameraRotation();
-            break;
-        default:
-            break;
+        // Camera movement
+    case 'w':
+        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, cameraSpeed))));
+        break;
+    case 's':
+        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -cameraSpeed))));
+        break;
+    case 'a':
+        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(cameraSpeed, 0.0f, 0.0f))));
+        break;
+    case 'd':
+        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-cameraSpeed, 0.0f, 0.0f))));
+        break;
+    default:
+        break;
     }
 }
 
@@ -38,7 +47,27 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
  * @param mouseX mouse X coordinate
  * @param mouseY mouse Y coordinate
  */
-void specialCallback(int key, int mouseX, int mouseY){}
+void specialCallback(int key, int mouseX, int mouseY)
+{
+    // Camera rotation
+    switch (key)
+    {
+    case 100://left
+        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 0.0f))));
+        break;
+    case 102://right
+        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f))));
+        break;
+    case 101://up
+        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 0.0f))));
+        break;
+    case 103://down
+        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(-10.0f), glm::vec3(1.0f, 0.0f, 0.0f))));
+        break;
+    default:
+        break;
+    }
+}
 
 //////////
 // MAIN //
@@ -58,7 +87,7 @@ int main(int argc, char *argv[])
 
     // Set callbacks
     engine->setKeyboardCallback(keyboardCallback);
-    //engine->setSpecialCallback(specialCallback);
+    engine->setSpecialCallback(specialCallback);
 
     // Load scene
     scene = new Node("Root");
@@ -89,12 +118,12 @@ int main(int argc, char *argv[])
     scene->addChild(sphere);
 
     // Add camera to the scene
-    Camera* staticCam = new PerspectiveCamera("static_cam", 1.0f, 5.0f, 45.0f, 1.0f);
+    camera = new PerspectiveCamera("static_cam", 1.0f, 5.0f, 45.0f, 1.0f);
     glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 2.0f, 2.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 1.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    staticCam->setObjectCoordinates(s_camera_M);
-    scene->addChild(staticCam);
+    camera->setObjectCoordinates(s_camera_M);
+    scene->addChild(camera);
 
     // Add light to the scene
     Light* light = new DirectionalLight("light", 100);
