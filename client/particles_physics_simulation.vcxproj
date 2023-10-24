@@ -15,7 +15,7 @@
     <ProjectGuid>{7DBC71EE-1589-45CD-A658-75E2EE7BB179}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>clientApp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>client</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

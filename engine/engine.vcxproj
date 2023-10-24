@@ -15,7 +15,7 @@
     <ProjectGuid>{0A2E8D85-1B72-415D-AC5F-74E7252008F6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>simpleDynLib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>engine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
