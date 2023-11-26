@@ -5,7 +5,7 @@ This repository contains my thesis project for my Bachelor's degree in Computer 
 ## Abstract
 In this thesis physically based particle simulators were analysed and based on the findings a solution was implemented that can handle huge amounts of sphere particle interactions in real-time harnessing the capabilities of modern GPUs. The program efficiently models dynamic interactions and behaviours among particles, focusing on realistic particle motions, forces, and collisions. By skilfully utilizing GPU resources, it becomes a potent tool for understanding and visualizing intricate particle behaviours within the accelerated realm of parallel computing. This program offers a comprehensive approach to exploring particle dynamics in diverse scenarios.
 
-![[50k_spheres.mp4]]
+https://github.com/dlwlsns/particles_physics_simulation/assets/37157841/fbc90ecf-fc6c-4acf-a07d-cf0927e745a1
 
 The project is built in C++ with OpenGL (FreeGLUT), taking advantage of compute shaders, instancing, and grid partitioning to enhance the parallelism capabilities of a modern GPU. 
 
