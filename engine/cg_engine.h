@@ -65,12 +65,7 @@ class LIB_API CgEngine
 		void run();
 		void displayCallback();
 		void reshapeCallback(int width, int height);
-		bool free();     
-
-		void setKeyboardCallback(void (*func)(unsigned char, int, int));
-		void setSpecialCallback(void (*func)(int, int, int));
-		void setIdleCallback(void (*func)());
-		unsigned int getElapsedTime();
+		bool free();
 
 		void cameraRotation();
 		void toggleWireframe();

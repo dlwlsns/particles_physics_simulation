@@ -83,8 +83,6 @@ void CgEngine::cameraRotation() {
     current_shader->setMatrix(current_shader->getParamLocation("projection"), cameras[activeCam]->getProjection());
 
     glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
-
-    //glutPostWindowRedisplay(windowId);
 }
 
 /**
@@ -97,35 +95,6 @@ void CgEngine::toggleWireframe() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    //glutPostWindowRedisplay(windowId);
-}
-
-/**
- * This function allows the client to set a keyboard callback function.
- */
-void CgEngine::setKeyboardCallback(void (*func)(unsigned char, int, int)) {
-    //glutKeyboardFunc(func);
-    //glfwSetKeyCallback(windowId, func);
-}
-
-/**
- * This function allows the client to set a special callback function.
- */
-void CgEngine::setSpecialCallback(void (*func)(int, int, int)) {
-    //glutSpecialFunc(func);
-}
-
-/**
- * This function allows the client to set a idle callback function.
- */
-void CgEngine::setIdleCallback(void (*func)()) {
-    //glutIdleFunc(func);
-}
-
-unsigned int CgEngine::getElapsedTime() {
-    //return glutGet(GLUT_ELAPSED_TIME);
-    return 0;
 }
 
 /**
@@ -313,13 +282,7 @@ void CgEngine::displayCallback()
     glDispatchCompute((GLuint)(renderlist->get(0)->matrices.size()), 1, 1);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-    // Swap this context's buffer:  
-    //glutSwapBuffers();
-
     deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
-
-    // Force rendering refresh:
-    //glutPostWindowRedisplay(windowId);
 }
 
 /**
@@ -513,8 +476,6 @@ void CgEngine::run() {
 
     int n_items = renderlist->get(0)->matrices.size();
 
-    //std::cout << n_items << std::endl;
-
     for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount; i++) {
         counters.push_back(0);
     }
@@ -551,6 +512,8 @@ void CgEngine::run() {
             frameCount = 0;
             previousTime = currentTime;
         }
+
+        cameras[activeCam]->move(windowId);
 
         displayCallback();
         frameCount++;

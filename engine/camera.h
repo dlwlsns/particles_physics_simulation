@@ -1,4 +1,5 @@
 #pragma once
+
 #include "node.h"
 
 class LIB_API Camera : public Node
@@ -22,6 +23,7 @@ class LIB_API Camera : public Node
 		glm::mat4 getProjection();
 		void setProjection(glm::mat4 projection);
 
+		void move(void* window);
 		virtual void render(glm::mat4 inverseCamera_M) = 0;
 };
 

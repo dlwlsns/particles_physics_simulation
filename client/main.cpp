@@ -12,63 +12,6 @@ CgEngine* engine;
 Node* scene;
 Camera* camera;
 
-/**
- * This callback is invoked each time a keyboard key is pressed.
- * @param key key pressed id
- * @param mouseX mouse X coordinate
- * @param mouseY mouse Y coordinate
- */
-void keyboardCallback(unsigned char key, int mouseX, int mouseY)
-{
-    const float cameraSpeed = 0.2f; // adjust accordingly
-    switch (key)
-    {
-        // Camera movement
-    case 'w':
-        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, cameraSpeed))));
-        break;
-    case 's':
-        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -cameraSpeed))));
-        break;
-    case 'a':
-        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(cameraSpeed, 0.0f, 0.0f))));
-        break;
-    case 'd':
-        camera->appendMatrix(glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-cameraSpeed, 0.0f, 0.0f))));
-        break;
-    default:
-        break;
-    }
-}
-
-/**
- * This callback is invoked each time a special keyboard key is pressed.
- * @param key key pressed id
- * @param mouseX mouse X coordinate
- * @param mouseY mouse Y coordinate
- */
-void specialCallback(int key, int mouseX, int mouseY)
-{
-    // Camera rotation
-    switch (key)
-    {
-    case 100://left
-        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 0.0f))));
-        break;
-    case 102://right
-        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f))));
-        break;
-    case 101://up
-        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 0.0f))));
-        break;
-    case 103://down
-        camera->appendMatrix(glm::inverse(glm::rotate(glm::mat4(1.0f), glm::radians(-10.0f), glm::vec3(1.0f, 0.0f, 0.0f))));
-        break;
-    default:
-        break;
-    }
-}
-
 //////////
 // MAIN //
 //////////
