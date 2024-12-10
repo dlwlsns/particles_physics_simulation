@@ -1,7 +1,7 @@
 #include "sphere.h"
 #include <iostream>
 #include <GL/glew.h>
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 // https://www.youtube.com/watch?v=sLqXFF8mlEU&t=36s
 void Sphere::createFace(glm::vec3 normal, int resolution) {

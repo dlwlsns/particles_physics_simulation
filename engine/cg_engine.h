@@ -63,6 +63,8 @@ class LIB_API CgEngine
 		bool init(int argc, char* argv[]);
 		void parse(Node* scene);
 		void run();
+		void displayCallback();
+		void reshapeCallback(int width, int height);
 		bool free();     
 
 		void setKeyboardCallback(void (*func)(unsigned char, int, int));

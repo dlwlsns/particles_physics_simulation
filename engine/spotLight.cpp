@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "shaderGlobals.h"
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 SpotLight::SpotLight(char* name, glm::vec3 direction, float radius) : Light(name, radius) {
 	this->setPositionW(1.0f);

@@ -12,7 +12,7 @@
 #include <GL/glew.h>
 
 // FreeGLUT:   
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 // Engine
 #include "cg_engine.h"
@@ -26,7 +26,7 @@
 // DLL MAIN //
 //////////////
 
-int windowId;
+GLFWwindow* windowId;
 
 // Elements
 Node* currentScene;
@@ -40,8 +40,9 @@ RenderList* renderlist;
 bool wireframe = true;
 
 // FPS:
+double previousTime = glfwGetTime();
 int fps = 0;
-int frames = 0;
+int frameCount = 0;
 float deltaFrameTime = 0;
 
 /////////////
@@ -83,7 +84,7 @@ void CgEngine::cameraRotation() {
 
     glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
 
-    glutPostWindowRedisplay(windowId);
+    //glutPostWindowRedisplay(windowId);
 }
 
 /**
@@ -97,32 +98,34 @@ void CgEngine::toggleWireframe() {
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    glutPostWindowRedisplay(windowId);
+    //glutPostWindowRedisplay(windowId);
 }
 
 /**
  * This function allows the client to set a keyboard callback function.
  */
 void CgEngine::setKeyboardCallback(void (*func)(unsigned char, int, int)) {
-    glutKeyboardFunc(func);
+    //glutKeyboardFunc(func);
+    //glfwSetKeyCallback(windowId, func);
 }
 
 /**
  * This function allows the client to set a special callback function.
  */
 void CgEngine::setSpecialCallback(void (*func)(int, int, int)) {
-    glutSpecialFunc(func);
+    //glutSpecialFunc(func);
 }
 
 /**
  * This function allows the client to set a idle callback function.
  */
 void CgEngine::setIdleCallback(void (*func)()) {
-    glutIdleFunc(func);
+    //glutIdleFunc(func);
 }
 
 unsigned int CgEngine::getElapsedTime() {
-    return glutGet(GLUT_ELAPSED_TIME);
+    //return glutGet(GLUT_ELAPSED_TIME);
+    return 0;
 }
 
 /**
@@ -163,10 +166,6 @@ void CgEngine::parse(Node* scene) {
 
     if (dynamic_cast<const Camera*>(scene) != nullptr) {
         cameras.push_back(dynamic_cast<Camera*>(scene));
-
-        //TODO: find a place to set first camera
-        Shader* current_shader = shaders.getShaderById(0);
-        glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
     }
     else if(dynamic_cast<const Sphere*>(scene) != nullptr) {
         //TODO: find a better way to add a new mesh type
@@ -181,49 +180,6 @@ void CgEngine::parse(Node* scene) {
 }
 
 /**
- * This method start the render of the scene.
- */
-void CgEngine::run() {
-    // Enter the main FreeGLUT processing loop:
-    if (renderlist->size() == 0) {
-        std::cout << "Scene not loaded." << std::endl;
-        return;
-    }
-
-    if (cameras.size() < 1) {
-        std::cout << "No camera loaded." << std::endl;
-        return;
-    }
-
-    
-    int n_items = renderlist->get(0)->matrices.size();
-
-    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount; i++) {
-        counters.push_back(0);
-    }
-
-    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount * n_items; i++) {
-        cells.push_back(0);
-    }
-
-    glGenBuffers(1, &ssboGrid);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGrid);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, this->cellCount * this->cellCount * this->cellCount * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
-
-    
-    glGenBuffers(1, &ssboGridCounter);
-    // bind the buffer and define its initial storage capacity
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
-    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * this->cellCount * this->cellCount * this->cellCount, &counters[0], GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, ssboGridCounter);
-
-    
-
-    glutMainLoop();
-}
-
-/**
  * Deinitialization method.
  * @return true on success, false on error
  */
@@ -235,6 +191,8 @@ bool CgEngine::free()
         std::cout << "ERROR: class not initialized" << std::endl;
         return false;
     }
+
+    glfwTerminate();
 
     // Done:
     initFlag = false;
@@ -299,22 +257,6 @@ void __stdcall DebugCallback(GLenum source, GLenum type, GLuint id, GLenum sever
     std::cout << "---------------------opengl-callback-end--------------" << std::endl;
 }
 
-/**
- * This callback is invoked each second.
- * 
- * @param value passepartout value
- */
-void timerCallback(int value)
-{
-    // Update values:
-    fps = frames;
-    frames = 0;
-    glutSetWindowTitle(("Particles Physics Simulation - " + std::to_string(fps) + " FPS").c_str());
-
-    // Register the next update:
-    glutTimerFunc(1000, timerCallback, 0);
-}
-
 void CgEngine::updateGrid() {
     // 8000 is a limitation forced by arrays in compute shaders
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
@@ -348,7 +290,7 @@ void CgEngine::updateUniforms() {
 /**
  * This is the main rendering routine automatically invoked by FreeGLUT.
  */
-void displayCallback()
+void CgEngine::displayCallback()
 {
     auto t_start = std::chrono::high_resolution_clock::now();
 
@@ -358,7 +300,6 @@ void displayCallback()
     glClearDepth(1.0f);
 
     // Render Nodes
-    shaders.activateShader(0);
     renderlist->render(cameras[activeCam]->getInverse());
 
     // run compute shader
@@ -373,13 +314,12 @@ void displayCallback()
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     // Swap this context's buffer:  
-    frames++;
-    glutSwapBuffers();
+    //glutSwapBuffers();
 
     deltaFrameTime = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - t_start).count() / 1000;
 
     // Force rendering refresh:
-    glutPostWindowRedisplay(windowId);
+    //glutPostWindowRedisplay(windowId);
 }
 
 /**
@@ -388,7 +328,7 @@ void displayCallback()
  * @param width new window width
  * @param height new window height
  */
-void reshapeCallback(int width, int height)
+void CgEngine::reshapeCallback(int width, int height)
 {
     glViewport(0, 0, width, height);
 
@@ -402,10 +342,10 @@ void reshapeCallback(int width, int height)
         }
         else {
             OrthographicCamera* oCamera = dynamic_cast<OrthographicCamera*>(cameras[i]);
-            oCamera->setXMin(width/-200.0f);
-            oCamera->setYMin(height/-200.0f);
-            oCamera->setXMax(width/200.0f);
-            oCamera->setYMax(height/200.0f);
+            oCamera->setXMin(width / -200.0f);
+            oCamera->setYMin(height / -200.0f);
+            oCamera->setXMax(width / 200.0f);
+            oCamera->setYMax(height / 200.0f);
 
             oCamera->setProjection(glm::ortho(oCamera->getXMin(), oCamera->getXMax(), oCamera->getYMin(), oCamera->getYMax(), oCamera->getNearPlane(), oCamera->getFarPlane()));
         }
@@ -413,6 +353,7 @@ void reshapeCallback(int width, int height)
 
     Shader* current_shader = shaders.getShaderById(0);
     current_shader->setMatrix(current_shader->getParamLocation("projection"), cameras[activeCam]->getProjection());
+    glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(cameras[activeCam]->getInverse()));
 }
 
 
@@ -451,25 +392,33 @@ bool CgEngine::init(int argc, char* argv[])
     }
 
     // FreeGLUT can parse command-line params, in case:
-    glutInit(&argc, argv);
+    glfwInit();
 
     // Init and use the lib:
     // Init context:
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowPosition(100, 100);
-    glutInitWindowSize(1920, 1080);
-    glutTimerFunc(1000, timerCallback, 0);
+    //glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    //glutInitWindowPosition(100, 100);
+    //glutTimerFunc(1000, timerCallback, 0);
 
     //Set context to opengl4
-    glutInitContextVersion(4, 5);
-    glutInitContextProfile(GLUT_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     //glutInitContextFlags(GLUT_DEBUG); // <-- Debug flag required by the OpenGL debug callback    
 
     // Set some optional flags:
-    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+    //glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
     // Create the window with a specific title:   
-    windowId = glutCreateWindow("Particles Physics Simulation");
+    windowId = glfwCreateWindow(1920, 1080, "Particles Physics Simulation", NULL, NULL);
+    if (!windowId)
+    {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+
+    glfwMakeContextCurrent(windowId);
 
     // Init Glew (*after* the context creation):
     glewExperimental = GL_TRUE;
@@ -502,8 +451,7 @@ bool CgEngine::init(int argc, char* argv[])
     glEnable(GL_CULL_FACE);
 
     // Set callback functions:
-    glutDisplayFunc(displayCallback);
-    glutReshapeFunc(reshapeCallback);
+    //glfwSetFramebufferSizeCallback(windowId, framebuffer_size_callback);
 
     getGlDetails();
 
@@ -545,4 +493,69 @@ bool CgEngine::init(int argc, char* argv[])
     initFlag = true;
 
     return true;
+}
+
+/**
+ * This method start the render of the scene.
+ */
+void CgEngine::run() {
+    // Enter the main FreeGLUT processing loop:
+    if (renderlist->size() == 0) {
+        std::cout << "Scene not loaded." << std::endl;
+        return;
+    }
+
+    if (cameras.size() < 1) {
+        std::cout << "No camera loaded." << std::endl;
+        return;
+    }
+
+
+    int n_items = renderlist->get(0)->matrices.size();
+
+    //std::cout << n_items << std::endl;
+
+    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount; i++) {
+        counters.push_back(0);
+    }
+
+    for (int i = 0; i < this->cellCount * this->cellCount * this->cellCount * n_items; i++) {
+        cells.push_back(0);
+    }
+
+    glGenBuffers(1, &ssboGrid);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboGrid);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, this->cellCount * this->cellCount * this->cellCount * n_items * sizeof(int), &cells[0], GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, ssboGrid);
+
+
+    glGenBuffers(1, &ssboGridCounter);
+    // bind the buffer and define its initial storage capacity
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, ssboGridCounter);
+    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint) * this->cellCount * this->cellCount * this->cellCount, &counters[0], GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, ssboGridCounter);
+
+    reshapeCallback(1920, 1080);
+
+    while (!glfwWindowShouldClose(windowId))
+    {
+        // Measure speed
+        double currentTime = glfwGetTime();
+        
+        // If a second has passed.
+        if (currentTime - previousTime >= 1.0)
+        {
+            // Display the frame count here any way you want.
+            glfwSetWindowTitle(windowId, ("Particles Physics Simulation [" + std::to_string(frameCount) + " FPS]").c_str());
+
+            frameCount = 0;
+            previousTime = currentTime;
+        }
+
+        displayCallback();
+        frameCount++;
+
+        glfwSwapBuffers(windowId);
+        glfwPollEvents();
+    }
 }

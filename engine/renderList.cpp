@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 
 #include <GL/glew.h>
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 #include "renderList.h"
 #include "directionalLight.h"
@@ -58,6 +58,8 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 	Shader* current_shader = shaders.getShaderById(0);
 	glUniformMatrix4fv(current_shader->getParamLocation("invCamera"), 1, GL_FALSE, glm::value_ptr(inverseCamera_M));
 	
+	//std::cout << items.size() << std::endl;
+
 	for (RenderItem* item : items)
 	{
 		if (dynamic_cast<const Mesh*>(item->node) != nullptr) {
@@ -76,6 +78,8 @@ void RenderList::render(glm::mat4 inverseCamera_M) {
 		else if (dynamic_cast<const DirectionalLight*>(item->node) != nullptr) {
 			DirectionalLight* light = (dynamic_cast<DirectionalLight*>(item->node));
 			light->render();
+
+			std::cout << "light" << std::endl;
 		}
 	}
 

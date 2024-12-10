@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 
 // FreeGLUT:
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 // C/C++:
 #include <iostream>

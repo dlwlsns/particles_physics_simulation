@@ -79,15 +79,15 @@ void specialCallback(int key, int mouseX, int mouseY)
  * @param argv array containing up to argc passed arguments
  * @return error code (0 on success, error code otherwise)
  */
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     // Init and use the lib:
     engine = CgEngine::getIstance();
     engine->init(argc, argv);
 
     // Set callbacks
-    engine->setKeyboardCallback(keyboardCallback);
-    engine->setSpecialCallback(specialCallback);
+    //engine->setKeyboardCallback(keyboardCallback);
+    //engine->setSpecialCallback(specialCallback);
 
     // Load scene
     scene = new Node("Root");
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     for (int x = 0; x < 50000; x++) {
         sphere->addTransform(
             glm::vec4(
-                (-border* 0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
+                (-border * 0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
                 (1.0) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5.0f))),
                 (-border * 0.9) + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (border * 0.9 - (-border * 0.9)))),
                 0.01f
@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
     glm::mat4 s_camera_M = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 2.0f, 2.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-35.0f), glm::vec3(1.0f, 0.0f, 1.0f))
         * glm::rotate(glm::mat4(1.0f), glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
     camera->setObjectCoordinates(s_camera_M);
     scene->addChild(camera);
 

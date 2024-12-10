@@ -1,5 +1,5 @@
 #include <iostream>
-#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 
 #include "pointLight.h"
 
