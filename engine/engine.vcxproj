@@ -20,14 +20,14 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -71,6 +71,9 @@
       <ImportLibrary>$(OutDir)\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>..\dependencies\glfw\lib\;..\dependencies\glew\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <Lib>
+      <AdditionalDependencies>..\dependencies\glfw\lib\glfw3.lib;..\dependencies\glew\lib\$(Platform)\$(Configuration)\glew.lib;opengl32.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -91,6 +94,9 @@
       <ImportLibrary>$(OutDir)\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>..\dependencies\glfw\lib\;..\dependencies\glew\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <Lib>
+      <AdditionalDependencies>..\dependencies\glfw\lib\glfw3.lib;..\dependencies\glew\lib\$(Platform)\$(Configuration)\glew.lib;opengl32.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
