@@ -424,11 +424,11 @@ bool CgEngine::init(int argc, char* argv[])
 
     // Compile vertex shader:
     Shader* vs = new Shader("Vertex");
-    vs->loadFromFile(Shader::TYPE_VERTEX, "../engine/shaders/simple.vert");
+    vs->loadFromFile(Shader::TYPE_VERTEX, "../engine/Source/Engine/shaders/simple.vert");
 
     // Compile fragment shader:
     Shader* fs = new Shader("Fragment");
-    fs->loadFromFile(Shader::TYPE_FRAGMENT, "../engine/shaders/directLight.frag");
+    fs->loadFromFile(Shader::TYPE_FRAGMENT, "../engine/Source/Engine/shaders/directLight.frag");
 
     // Setup shader program:
     light = new Shader("directLight");
@@ -441,7 +441,7 @@ bool CgEngine::init(int argc, char* argv[])
     cs = new Shader("ComputeShader");
 
     Shader* cs1 = new Shader("Compute");
-    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/shaders/sphere.comp");
+    cs1->loadFromFile(Shader::TYPE_COMPUTE, "../engine/Source/Engine/shaders/sphere.comp");
     
     cs->build(cs1);
 
